@@ -70,13 +70,12 @@ export default {
         {
           icon: 'dashboard',
           label: 'Dashboard',
-          route: "/",
+          route: "/dashboard",
           separator: true
         },
         {
           icon: 'receipt',
           label: 'Boletas',
-          route: 'login',
           separator: true
         },
         {
@@ -90,7 +89,7 @@ export default {
   methods: {
     onPressMenu: function (oEvent) {
       if (oEvent == 'Cerrar sesión') {
-        window.location.replace('/logout');
+        this.$router.replace('/');
       }
     }
   },
