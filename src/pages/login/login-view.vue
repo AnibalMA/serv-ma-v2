@@ -21,8 +21,8 @@
                     </q-card-section>
                     <q-card-section>
                         <q-btn style="border-radius: 8px;" color="cyan-8" rounded size="md" label="Iniciar Sesión" no-caps
-                            @click="login(); userStore.increment();" class="full-width"></q-btn>
-                        <!-- <span style="color: #eee;">{{ userStore.counter }}</span> -->
+                            @click="login();" class="full-width"></q-btn>
+                        <!-- <span style="color: #eee;">{{ userStore.sToken }}</span> -->
                     </q-card-section>
                 </q-card>
             </q-page>

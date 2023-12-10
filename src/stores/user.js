@@ -1,19 +1,27 @@
 import { defineStore } from 'pinia'
+import { LocalStorage } from 'quasar';
 
-export const useUserStore = defineStore('counter', {
+export const useUserStore = defineStore('User', {
   state: () => ({
-    counter: 0
+    oUser: LocalStorage.getItem('user'),
+    sToken: '',
   }),
-
-  getters: {
-    doubleCount (state) {
-      return state.counter * 2
-    }
-  },
-
   actions: {
-    increment () {
-      this.counter++
+    setUser(oUser) {
+      this.sToken = oUser?.sToken || '';
+      LocalStorage.set('-oUI', btoa(JSON.stringify(oUser ? oUser : {})));
+      this.oUser = LocalStorage.getItem('-oUI');
+    },
+    getUser() {
+      return this.oUser ? JSON.parse(atob(this.oUser)) : LocalStorage.getItem('-oUI') ? JSON.parse(atob(LocalStorage.getItem('-oUI'))) : {};
+    },
+    getToken() {
+      return this.sToken;
+    },
+    logout() {
+      LocalStorage.remove('-oUI');
+      this.oUser = null;
+      this.sToken = '';
     }
   }
 })

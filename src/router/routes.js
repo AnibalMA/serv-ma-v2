@@ -1,15 +1,48 @@
-
+import { useUserStore } from 'src/stores/user'
+import { Notify } from 'quasar';
 const routes = [
   {
-    path: '/dashboard',
+    path: '/',
+    name: 'home',
+    beforeEnter: (to, from, next) => {
+      // console.log('to', to);
+      // console.log('from', from);
+      const oUser = useUserStore().getUser();
+      if (oUser.sToken) {
+        if (to.path === '/') {
+          next('/dashboard');
+        } else {
+          next();
+        }
+      } else {
+
+        Notify.create({
+          color: "blue-8",
+          textColor: "white",
+          icon: "info",
+          message: "Por favor inicie sesión"
+        });
+
+        next('/login');
+      }
+    },
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: 'dashboard', component: () => import('pages/IndexPage.vue') },
-      { path: 'boletas', component: () => import('pages/login/login-view.vue') }
+      { name: 'dashboard', path: 'dashboard', component: () => import('pages/IndexPage.vue') },
+      { name: 'boletas', path: 'boletas', component: () => import('pages/boletas/boletas-view.vue') }
     ]
   },
   {
-    path: '/',
+    path: '/login',
+    name: 'login',
+    beforeEnter: (to, from, next) => {
+      const oUser = useUserStore().getUser();
+      if (oUser.sToken) {
+        next('/dashboard');
+      } else {
+        next();
+      }
+    },
     component: () => import('pages/login/login-view.vue')
   },
 

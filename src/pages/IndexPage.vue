@@ -1,17 +1,66 @@
 <template>
-  <q-page class="flex flex-center">
-    <!-- <img
-      alt="Quasar logo"
-      src="~assets/quasar-logo-vertical.svg"
-      style="width: 200px; height: 200px"
-    > -->
-  </q-page>
+  <div class="q-pa-md">
+    <div class="q-gutter-md">
+      <div class="q-pl-sm">
+        <span class="q-table__title" style="color: #000"># Dashboard</span>
+      </div>
+      <q-carousel
+        v-model="slide"
+        transition-prev="scale"
+        transition-next="scale"
+        swipeable
+        animated
+        control-color="white"
+        navigation
+        padding
+        arrows
+        height="300px"
+        class="bg-cyan-8 text-white shadow-1 rounded-borders"
+      >
+        <q-carousel-slide name="tv" class="column no-wrap flex-center">
+          <q-icon name="live_tv" size="56px" />
+          <div class="q-mt-md text-center">
+            Te encuentras en la versión inicial de la aplicación
+          </div>
+        </q-carousel-slide>
+        <q-carousel-slide name="layers" class="column no-wrap flex-center">
+          <q-icon name="layers" size="56px" />
+          <div class="q-mt-md text-center">
+            Pronto tendremos más funcionalidades
+          </div>
+        </q-carousel-slide>
+      </q-carousel>
+      <div style="max-width: 350px">
+        <q-toolbar class="bg-primary text-white shadow-2 rounded-borders">
+          <q-toolbar-title>Funcionalidades</q-toolbar-title>
+        </q-toolbar>
+
+        <q-list bordered>
+          <q-item-label header
+            >Ver Boletas de Pago (Pendientes y Canceladas)</q-item-label
+          >
+          <q-separator />
+          <q-item-label header
+            >Descargar Boletas de Pago (Pendientes y Canceladas)</q-item-label
+          >
+          <q-separator />
+          <q-item-label header>+Proximamente</q-item-label>
+        </q-list>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent } from "vue";
+import { ref } from "vue";
 
 export default defineComponent({
-  name: 'IndexPage'
-})
+  name: "IndexPage",
+  data() {
+    return {
+      slide: ref("tv"),
+    };
+  },
+});
 </script>

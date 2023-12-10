@@ -1,3 +1,4 @@
+import { useUserStore } from "src/stores/user";
 import { serviceHttp } from "../../utils/serviceHttp";
 
 export default {
@@ -19,6 +20,9 @@ export default {
                     icon: "check_circle",
                     message: data?.sMessage
                 });
+
+                useUserStore().setUser(data?.data || {});
+
                 this.$router.replace("/dashboard");
             } else {
                 this.$q.notify({
