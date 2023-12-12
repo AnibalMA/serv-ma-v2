@@ -14,7 +14,29 @@
             Bienvenido, {{ loggedInUser.nom_usuario }}
             {{ loggedInUser.ape_usuario }}
           </div>
+          <q-toggle
+            name="light_active"
+            v-model="activateDark"
+            @update:model-value="onChangeTheme"
+            color="primary"
+            checked-icon="dark_mode"
+            unchecked-icon="lightbulb"
+          >
+            <q-tooltip
+              transition-show="scale"
+              transition-hide="scale"
+              class="bg-cyan-8 text-white"
+              >Activar modo {{ activateDark ? "Light" : "Dark" }}</q-tooltip
+            >
+          </q-toggle>
+          <q-separator dark vertical inset />
           <q-btn round icon="notifications" unelevated class="q-mx-sm" disable>
+            <q-tooltip
+              transition-show="scale"
+              transition-hide="scale"
+              class="bg-cyan-8 text-white"
+              >Notificaciones</q-tooltip
+            >
             <q-badge
               :floating="true"
               color="red"
@@ -94,12 +116,14 @@
 // import { ref, computed } from 'vue'
 import { useUserStore } from "src/stores/user";
 // import { Quasar, Platform } from 'quasar'
+import { Dark } from "quasar";
 // import { route, store } from 'quasar/wrappers'
 import { serviceHttp } from "src/utils/serviceHttp";
 
 export default {
   data() {
     return {
+      activateDark: false,
       user: useUserStore().getUser(),
       drawer: false,
       menuList: [
@@ -142,6 +166,9 @@ export default {
     logout: function () {
       useUserStore().logout();
       this.$router.replace("/login");
+    },
+    onChangeTheme: function () {
+      Dark.toggle();
     },
   },
   computed: {
