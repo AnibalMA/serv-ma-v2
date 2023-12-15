@@ -54,23 +54,23 @@
         :show-if-above="true"
         :width="200"
         :breakpoint="400"
+        style="border-right: 1px solid #26a69a"
       >
         <q-scroll-area
-          style="
-            height: calc(100% - 150px);
-            margin-top: 150px;
-            border-right: 1px solid #ddd;
-          "
+          style="height: calc(100% - 150px); margin-top: 150px"
+          :thumb-style="thumbStyle"
+          :bar-style="barStyle"
+          dark
         >
           <q-list :padding="true">
             <template v-for="(menuItem, index) in menuList">
               <q-item
                 v-if="true"
                 :clickable="true"
-                style="height: 100px"
+                style="height: 80px"
                 :key="index"
                 :to="menuItem.route"
-                @click="onPressMenu(menuItem.label)"
+                @click="onPressMenu(menuItem)"
               >
                 <q-item-section>
                   <div class="row" style="text-align: center">
@@ -95,7 +95,13 @@
         >
           <div class="absolute-bottom bg-transparent">
             <q-avatar size="56px" class="q-mb-sm">
-              <img src="https://cdn.quasar.dev/img/boy-avatar.png" />
+              <img
+                :src="
+                  loggedInUser.genero === 'M'
+                    ? 'src/assets/boy-avatar.png'
+                    : 'src/assets/girl-avatar.png'
+                "
+              />
             </q-avatar>
             <div class="text-weight-bold">
               {{ loggedInUser.nom_usuario }} {{ loggedInUser.ape_usuario }}
@@ -106,7 +112,13 @@
       </q-drawer>
 
       <q-page-container>
-        <router-view />
+        <q-scroll-area
+          style="height: calc(100vh - 50px)"
+          :thumb-style="thumbStyle"
+          :bar-style="barStyle"
+        >
+          <router-view />
+        </q-scroll-area>
       </q-page-container>
     </q-layout>
   </div>
@@ -126,18 +138,7 @@ export default {
       activateDark: false,
       user: useUserStore().getUser(),
       drawer: false,
-      menuList: [
-        {
-          icon: "dashboard",
-          label: "Dashboard",
-          route: "/dashboard",
-          separator: true,
-        },
-        {
-          icon: "receipt",
-          label: "Boletas",
-          separator: true,
-        },
+      menuList: useUserStore().getRols() || [
         {
           icon: "power_settings_new",
           label: "Cerrar sesión",
@@ -148,15 +149,15 @@ export default {
   },
   methods: {
     onPressMenu: async function (oEvent) {
-      switch (oEvent) {
+      switch (oEvent.label) {
         case "Dashboard":
           const resUsers = await serviceHttp.get("/users");
           console.log(resUsers);
           // console.log(this);
-          this.$router.replace("/dashboard");
+          this.$router.replace(oEvent.route);
           break;
         case "Boletas":
-          this.$router.replace("/boletas");
+          this.$router.replace(oEvent.route);
           break;
         case "Cerrar sesión":
           this.logout();
@@ -175,6 +176,25 @@ export default {
     loggedInUser() {
       return this.user;
     },
+  },
+  setup() {
+    return {
+      thumbStyle: {
+        right: "4px",
+        borderRadius: "5px",
+        backgroundColor: "#027be3",
+        width: "5px",
+        opacity: 0.75,
+      },
+
+      barStyle: {
+        right: "2px",
+        borderRadius: "9px",
+        backgroundColor: "#027be3",
+        width: "9px",
+        opacity: 0.2,
+      },
+    };
   },
 };
 </script>

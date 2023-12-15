@@ -31,3 +31,22 @@ body {
 .card-login {
   box-shadow: $primary 0px 0px 2px;
 }
+
+.card-dashboard {
+  max-width: 350px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+.q-separator--dark {
+  background: $secondary;
+}
+.q-separator {
+  background: $secondary;
+}
+
+@media screen and (max-width: 480px) {
+  // Styles for screens with a maximum width of 480px
+  .card-dashboard {
+    max-width: 100%;
+  }
+}

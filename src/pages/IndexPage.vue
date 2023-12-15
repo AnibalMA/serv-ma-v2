@@ -30,22 +30,35 @@
           </div>
         </q-carousel-slide>
       </q-carousel>
-      <div style="max-width: 350px">
-        <q-toolbar class="bg-primary text-white shadow-2 rounded-borders">
-          <q-toolbar-title>Funcionalidades</q-toolbar-title>
-        </q-toolbar>
+      <div class="row col-12 justify-evenly">
+        <div class="card-dashboard">
+          <q-toolbar class="bg-primary text-white shadow-2 rounded-borders">
+            <q-toolbar-title>Funcionalidades</q-toolbar-title>
+          </q-toolbar>
 
-        <q-list bordered>
-          <q-item-label header
-            >Ver Boletas de Pago (Pendientes y Canceladas)</q-item-label
-          >
-          <q-separator />
-          <q-item-label header
-            >Descargar Boletas de Pago (Pendientes y Canceladas)</q-item-label
-          >
-          <q-separator />
-          <q-item-label header>+Proximamente</q-item-label>
-        </q-list>
+          <q-list bordered>
+            <q-item-label header
+              >Ver Boletas de Pago (Pendientes y Canceladas)</q-item-label
+            >
+            <q-separator />
+            <q-item-label header
+              >Descargar Boletas de Pago (Pendientes y Canceladas)</q-item-label
+            >
+          </q-list>
+        </div>
+        <div class="card-dashboard">
+          <q-toolbar class="bg-primary text-white shadow-2 rounded-borders">
+            <q-toolbar-title>Proximamente</q-toolbar-title>
+          </q-toolbar>
+
+          <q-list bordered>
+            <q-item-label header>Perfil</q-item-label>
+            <q-separator />
+            <q-item-label header>Plataformas inscritas</q-item-label>
+            <q-separator />
+            <q-item-label header>Solicitudes</q-item-label>
+          </q-list>
+        </div>
       </div>
     </div>
   </div>
