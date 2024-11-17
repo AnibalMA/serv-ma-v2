@@ -24,9 +24,9 @@ export const useUserStore = defineStore("User", {
     },
     getRols() {
       return this.oUser
-        ? JSON.parse(atob(this.oUser)).aOpcMenu
+        ? JSON.parse(atob(this.oUser)).aOpcMenuNew
         : LocalStorage.getItem("-oUI")
-        ? JSON.parse(atob(LocalStorage.getItem("-oUI"))).aOpcMenu
+        ? JSON.parse(atob(LocalStorage.getItem("-oUI"))).aOpcMenuNew
         : [];
     },
     logout() {

@@ -1,57 +1,69 @@
-import { useUserStore } from 'src/stores/user'
-import { Notify } from 'quasar';
+import { useUserStore } from "src/stores/user";
+import { Notify } from "quasar";
 const routes = [
   {
-    path: '/',
-    name: 'home',
+    path: "/",
+    name: "home",
     beforeEnter: (to, from, next) => {
       // console.log('to', to);
       // console.log('from', from);
       const oUser = useUserStore().getUser();
       if (oUser.sToken) {
-        if (to.path === '/') {
-          next('/dashboard');
+        if (to.path === "/") {
+          next("/dashboard");
         } else {
           next();
         }
       } else {
-
         Notify.create({
           color: "blue-8",
           textColor: "white",
           icon: "info",
-          message: "Por favor inicie sesión"
+          message: "Por favor inicie sesión",
         });
 
-        next('/login');
+        next("/login");
       }
     },
-    component: () => import('layouts/MainLayout.vue'),
+    component: () => import("layouts/MainLayout.vue"),
     children: [
-      { name: 'dashboard', path: 'dashboard', component: () => import('pages/IndexPage.vue') },
-      { name: 'boletas', path: 'boletas', component: () => import('pages/boletas/boletas-view.vue') }
-    ]
+      {
+        name: "dashboard",
+        path: "dashboard",
+        component: () => import("pages/IndexPage.vue"),
+      },
+      {
+        name: "boletas",
+        path: "boletas",
+        component: () => import("pages/boletas/boletas-view.vue"),
+      },
+      {
+        name: "boletas_gen",
+        path: "boletas-gen",
+        component: () => import("pages/boletas-gen/boletas-view.vue"),
+      },
+    ],
   },
   {
-    path: '/login',
-    name: 'login',
+    path: "/login",
+    name: "login",
     beforeEnter: (to, from, next) => {
       const oUser = useUserStore().getUser();
       if (oUser.sToken) {
-        next('/dashboard');
+        next("/dashboard");
       } else {
         next();
       }
     },
-    component: () => import('pages/login/login-view.vue')
+    component: () => import("pages/login/login-view.vue"),
   },
 
   // Always leave this as last one,
   // but you can also remove it
   {
-    path: '/:catchAll(.*)*',
-    component: () => import('pages/ErrorNotFound.vue')
-  }
-]
+    path: "/:catchAll(.*)*",
+    component: () => import("pages/ErrorNotFound.vue"),
+  },
+];
 
-export default routes
+export default routes;

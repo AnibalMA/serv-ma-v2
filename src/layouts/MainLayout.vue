@@ -98,8 +98,8 @@
               <img
                 :src="
                   loggedInUser.genero === 'M'
-                    ? 'src/assets/boy-avatar.png'
-                    : 'src/assets/girl-avatar.png'
+                    ? images.boyImage
+                    : images.girlImage
                 "
               />
             </q-avatar>
@@ -131,13 +131,18 @@ import { useUserStore } from "src/stores/user";
 import { Dark } from "quasar";
 // import { route, store } from 'quasar/wrappers'
 import { serviceHttp } from "src/utils/serviceHttp";
-
+import boyImage from "src/assets/boy-avatar.png";
+import girlImage from "src/assets/girl-avatar.png";
 export default {
   data() {
     return {
       activateDark: false,
       user: useUserStore().getUser(),
       drawer: false,
+      images: {
+        boyImage,
+        girlImage,
+      },
       menuList: useUserStore().getRols() || [
         {
           icon: "power_settings_new",
