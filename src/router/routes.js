@@ -42,6 +42,11 @@ const routes = [
         path: "boletas-gen",
         component: () => import("pages/boletas-gen/boletas-view.vue"),
       },
+      {
+        name: "servicios",
+        path: "servicios",
+        component: () => import("pages/servicios/servicios-view.vue"),
+      },
     ],
   },
   {
