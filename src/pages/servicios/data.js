@@ -9,5 +9,7 @@ export default function () {
     arr_platforms_u: [],
     services: [],
     oResult: ref("Esperando solicitud..."),
+    isLoading: false,
+    eventSource: null,
   };
 }

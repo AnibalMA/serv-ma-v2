@@ -42,6 +42,7 @@
             option-label="label"
             :disable="!selectedPlatform"
             :loading="loadingServices"
+            @update:model-value="onServiceChange"
           >
             <template v-slot:no-option>
               <q-item>
@@ -58,12 +59,22 @@
             color="primary"
             label="Solicitar Servicio"
             class="full-width"
+            :disable="!selectedPlatform || !selectedService"
             @click="requestService"
-          />
+          >
+            <q-tooltip
+              v-if="!selectedPlatform || !selectedService"
+              class="bg-dark"
+            >
+              <q-icon name="info" class="q-mr-sm" />
+              <span class="text-bold">Requisitos:</span>
+              <ul class="q-ma-none q-pl-sm">
+                <li v-if="!selectedPlatform">Seleccionar plataforma</li>
+                <li v-if="!selectedService">Seleccionar servicio</li>
+              </ul>
+            </q-tooltip>
+          </q-btn>
         </div>
-        <br />
-        <br />
-        <br />
         <!-- Tarjeta de Información -->
         <div class="col-12" v-if="selectedPlatform && selectedService">
           <q-card class="my-card">

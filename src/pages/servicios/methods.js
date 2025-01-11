@@ -11,12 +11,15 @@ export default {
       this.loadingServices = false;
     }, 500);
   },
-
+  onServiceChange(service) {
+    this.selectedService = service;
+    this.oResult = "👆 Esperando solicitud...";
+  },
   getPlatformsByUser() {
     this.$q.loading.show();
 
     serviceHttp
-      .get(`/user_plataformas/3`)
+      .get(`/user_plataformas`)
       .then(({ data }) => {
         console.log(data);
 
@@ -27,7 +30,7 @@ export default {
         this.arr_platforms_u.forEach((value, index) => {
           value.icon = value.link_asset;
           value.label = value.desc_plataforma;
-          value.value = value.IdPlataforma;
+          value.value = value.cod_plataforma;
         });
 
         if (data?.ok) {
@@ -56,7 +59,7 @@ export default {
     this.$q.loading.show();
 
     serviceHttp
-      .post(`/platform_options`, { platformId: platform })
+      .post(`/platform_options`, { platform })
       .then(({ data }) => {
         console.log(data);
 
@@ -96,7 +99,7 @@ export default {
 
     serviceHttp
       .post(`/platform_request`, {
-        platformId: this.selectedPlatform.value,
+        platform: this.selectedPlatform.value,
         sAction: "/" + this.selectedService.value,
       })
       .then(({ data }) => {
@@ -109,5 +112,15 @@ export default {
       .catch((error) => {
         console.log(error);
       });
+  },
+  copiarAlPortapapeles(sText) {
+    navigator.clipboard.writeText(sText).then(() => {
+      this.$q.notify({
+        message: "Texto copiado",
+        color: "positive",
+        icon: "check",
+        position: "top",
+      });
+    });
   },
 };
