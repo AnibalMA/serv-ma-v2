@@ -62,6 +62,11 @@ const routes = [
     },
     component: () => import("pages/login/login-view.vue"),
   },
+  {
+    path: '/reset-password/:token',
+    component: () => import('pages/reset-password/reset-password.vue'),
+    name: 'reset-password'
+  },
 
   // Always leave this as last one,
   // but you can also remove it

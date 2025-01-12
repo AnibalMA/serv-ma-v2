@@ -53,6 +53,16 @@
             ></q-btn>
             <!-- <span style="color: #eee;">{{ userStore.sToken }}</span> -->
           </q-card-section>
+          <q-card-section class="text-center">
+            <q-btn
+              flat
+              dense
+              color="grey-1"
+              label="¿Olvidaste tu contraseña?"
+              no-caps
+              @click="forgotPassword()"
+            />
+          </q-card-section>
         </q-card>
       </q-page>
     </q-page-container>
