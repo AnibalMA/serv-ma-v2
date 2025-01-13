@@ -96,6 +96,14 @@ export default {
         });
         return;
       }
+
+      // Mostrar loading
+      this.$q.loading.show({
+        message: "Cambiando contraseña...",
+        spinnerSize: "3rem",
+        backgroundColor: "rgba(255, 255, 255, 0.7)",
+      });
+
       try {
         let resCP = await serviceHttp.post("/cambiarPassword", {
           token: this.token,
@@ -120,6 +128,9 @@ export default {
           message:
             error.response?.data?.message || "Error al cambiar la contraseña",
         });
+      } finally {
+        // Ocultar loading
+        this.$q.loading.hide();
       }
     },
   },

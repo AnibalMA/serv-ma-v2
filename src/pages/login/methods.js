@@ -69,7 +69,6 @@ export default {
           label: "Cancelar",
           color: "negative",
         },
-        // Agregar botón adicional para regresar
         buttons: [
           {
             label: "Regresar al login",
@@ -81,6 +80,13 @@ export default {
         ],
       })
       .onOk(async (sEmail) => {
+        // Mostrar loading
+        this.$q.loading.show({
+          message: "Procesando solicitud...",
+          spinnerSize: "3rem",
+          backgroundColor: "rgba(255, 255, 255, 0.7)",
+        });
+
         try {
           let oResRP = await serviceHttp.post("/recuperarPassword", { sEmail });
 
@@ -103,6 +109,9 @@ export default {
               "Error al enviar el correo de recuperación",
           });
           console.error(error);
+        } finally {
+          // Ocultar loading
+          this.$q.loading.hide();
         }
       });
   },
