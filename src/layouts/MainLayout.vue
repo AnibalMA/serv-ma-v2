@@ -156,8 +156,6 @@ export default {
     onPressMenu: async function (oEvent) {
       switch (oEvent.label) {
         case "Dashboard":
-          const resUsers = await serviceHttp.get("/users");
-          console.log(resUsers);
           // console.log(this);
           this.$router.replace(oEvent.route);
           break;

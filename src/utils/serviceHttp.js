@@ -29,6 +29,8 @@ axios_servma.interceptors.request.use(
 const verify_token = (response) => {
   if (response.request.status === 401) {
     LocalStorage.clear();
+
+    useUserStore().logout();
     // router().replace('/');
     Loading.hide();
 
@@ -48,12 +50,10 @@ const serviceHttp = {
       axios_servma
         .get(url)
         .then((response) => {
-          verify_token(response);
-          resolve(response);
+          verify_token(resolve(response));
         })
         .catch((error) => {
-          verify_token(error);
-          reject(error);
+          reject(verify_token(error));
         });
     });
   },
@@ -62,12 +62,10 @@ const serviceHttp = {
       axios_servma
         .post(url, data, options ? options : null)
         .then((response) => {
-          verify_token(response);
-          resolve(response);
+          verify_token(resolve(response));
         })
         .catch((error) => {
-          verify_token(error);
-          reject(error);
+          verify_token(reject(error));
         });
     });
   },
@@ -76,12 +74,10 @@ const serviceHttp = {
       axios_servma
         .put(url, data)
         .then((response) => {
-          verify_token(response);
-          resolve(response);
+          verify_token(resolve(response));
         })
         .catch((error) => {
-          verify_token(error);
-          reject(error);
+          verify_token(reject(error));
         });
     });
   },
@@ -90,12 +86,10 @@ const serviceHttp = {
       axios_servma
         .delete(url)
         .then((response) => {
-          verify_token(response);
-          resolve(response);
+          verify_token(resolve(response));
         })
         .catch((error) => {
-          verify_token(error);
-          reject(error);
+          verify_token(reject(error));
         });
     });
   },
@@ -104,12 +98,10 @@ const serviceHttp = {
       axios_servma
         .patch(url, data)
         .then((response) => {
-          verify_token(response);
-          resolve(response);
+          verify_token(resolve(response));
         })
         .catch((error) => {
-          verify_token(error);
-          reject(error);
+          verify_token(reject(error));
         });
     });
   },
@@ -118,12 +110,10 @@ const serviceHttp = {
       axios_servma
         .head(url)
         .then((response) => {
-          verify_token(response);
-          resolve(response);
+          verify_token(resolve(response));
         })
         .catch((error) => {
-          verify_token(error);
-          reject(error);
+          verify_token(reject(error));
         });
     });
   },
@@ -132,12 +122,10 @@ const serviceHttp = {
       axios_servma
         .options(url)
         .then((response) => {
-          verify_token(response);
-          resolve(response);
+          verify_token(resolve(response));
         })
         .catch((error) => {
-          verify_token(error);
-          reject(error);
+          verify_token(reject(error));
         });
     });
   },
