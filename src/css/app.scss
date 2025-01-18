@@ -44,6 +44,58 @@ body {
   background: $secondary;
 }
 
+.message-container {
+  overflow-y: auto;
+}
+
+.message-item {
+  padding: 8px;
+  margin-bottom: 8px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos específicos para los tipos de mensajes */
+.text-primary {
+  color: var(--q-primary);
+}
+
+.text-info {
+  color: var(--q-info);
+}
+
+.text-warning {
+  color: var(--q-warning);
+}
+
+.text-positive {
+  color: var(--q-positive);
+}
+
+.text-negative {
+  color: var(--q-negative);
+}
+.credential-row {
+  margin-bottom: 8px;
+}
+.copy-icon {
+  cursor: pointer !important;
+  padding: 4px;
+  border-radius: 4px;
+}
+.copy-icon:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
 @media screen and (max-width: 480px) {
   // Styles for screens with a maximum width of 480px
   .card-dashboard {

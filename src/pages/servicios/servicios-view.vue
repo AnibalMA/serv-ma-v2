@@ -89,14 +89,16 @@
 
             <q-separator />
 
-            <q-card flat bordered>
-              <q-card-section v-html="oResult" />
-            </q-card>
+            <q-card-section class="message-container">
+              <template v-for="(message, index) in messageList" :key="index">
+                <div class="message-item" v-html="message"></div>
+              </template>
+            </q-card-section>
           </q-card>
         </div>
       </div>
     </div>
   </q-page>
 </template>
-  
+
   <script src="./index.js" />

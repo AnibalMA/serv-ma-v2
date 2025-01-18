@@ -11,5 +11,8 @@ export default function () {
     oResult: ref("Esperando solicitud..."),
     isLoading: false,
     eventSource: null,
+    messageList: [
+      `<div class="text-info q-mt-sm">👆 Esperando solicitud...</div>`,
+    ],
   };
 }

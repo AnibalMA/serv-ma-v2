@@ -1,5 +1,9 @@
 // src/pages/servicios/methods.js
 import { serviceHttp } from "../../utils/serviceHttp";
+import { useMessages } from "./composables/useMessages";
+import MessageDisplay from "./components/MessageDisplay.vue";
+
+const { messages, isTyping, addMessage, clearMessages } = useMessages();
 export default {
   onPlatformChange(platform) {
     this.selectedService = null;
@@ -14,6 +18,9 @@ export default {
   onServiceChange(service) {
     this.selectedService = service;
     this.oResult = "👆 Esperando solicitud...";
+    this.messageList = [
+      `<div class="text-info q-mt-sm">👆 Esperando solicitud...</div>`,
+    ];
   },
   getPlatformsByUser() {
     this.$q.loading.show();
@@ -94,24 +101,77 @@ export default {
         console.log(error);
       });
   },
-  requestService() {
-    this.$q.loading.show();
+  getHeaderHtml(aHeaders) {
+    let sMessage = "";
+    aHeaders.forEach((value) => {
+      sMessage += value.sContent;
+    });
 
-    serviceHttp
-      .post(`/platform_request`, {
+    return sMessage;
+  },
+  getFooterHtml(aFooters) {
+    let sMessage = "";
+    aFooters.forEach((value) => {
+      sMessage += value.sContent;
+    });
+
+    return sMessage;
+  },
+  async requestService() {
+    this.$q.loading.show();
+    try {
+      const { data } = await serviceHttp.post(`/platform_request`, {
         platform: this.selectedPlatform.value,
         sAction: "/" + this.selectedService.value,
-      })
-      .then(({ data }) => {
-        console.log(data);
-
-        this.$q.loading.hide();
-
-        this.oResult = "<br>" + data.sMessage + data.data;
-      })
-      .catch((error) => {
-        console.log(error);
       });
+
+      this.$q.loading.hide();
+
+      if (Array.isArray(data.data)) {
+        // Limpiar mensajes anteriores
+        this.messageList = [];
+
+        // Procesar cada mensaje
+        for (const item of data.data) {
+          // if (!item.bContainer) {
+          await this.addMessageWithDelay(item.sContent);
+          // }
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      this.$q.loading.hide();
+
+      if (
+        error &&
+        error.response &&
+        error.response.data &&
+        error.response.data.data &&
+        Array.isArray(error.response.data.data)
+      ) {
+        this.messageList = [];
+        for (const item of error.response.data.data) {
+          await this.addMessageWithDelay(item.sContent);
+        }
+      } else {
+        this.messageList = [
+          `<div class="text-negative q-pa-md">Error: ${error.message}</div>`,
+        ];
+      }
+    }
+  },
+
+  async addMessageWithDelay(content) {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    this.messageList.push(content);
+
+    // Scroll al final
+    this.$nextTick(() => {
+      const container = document.querySelector(".message-container");
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    });
   },
   copiarAlPortapapeles(sText) {
     navigator.clipboard.writeText(sText).then(() => {
