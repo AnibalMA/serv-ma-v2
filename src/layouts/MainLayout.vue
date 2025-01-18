@@ -136,7 +136,7 @@ import girlImage from "src/assets/girl-avatar.png";
 export default {
   data() {
     return {
-      activateDark: false,
+      activateDark: Dark.isActive || false,
       user: useUserStore().getUser(),
       drawer: false,
       images: {
