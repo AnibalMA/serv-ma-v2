@@ -162,7 +162,8 @@ export default {
   },
 
   async addMessageWithDelay(content) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    let iDelay = 500;
+    await new Promise((resolve) => setTimeout(resolve, iDelay));
     this.messageList.push(content);
 
     // Scroll al final
@@ -172,6 +173,10 @@ export default {
         container.scrollTop = container.scrollHeight;
       }
     });
+
+    if (content.includes("Procesando")) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
   },
   copiarAlPortapapeles(sText) {
     navigator.clipboard.writeText(sText).then(() => {
