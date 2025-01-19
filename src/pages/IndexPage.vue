@@ -2,7 +2,7 @@
   <div class="q-pa-md">
     <div class="q-gutter-md">
       <div class="q-pl-sm">
-        <span class="q-table__title" style="color: #000"># Dashboard</span>
+        <span class="q-table__title"># Dashboard</span>
       </div>
       <q-carousel
         v-model="slide"
