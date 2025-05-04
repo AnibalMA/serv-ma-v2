@@ -43,6 +43,11 @@ const routes = [
         component: () => import("pages/boletas-gen/boletas-view.vue"),
       },
       {
+        name: "users-pendientes",
+        path: "users-pendientes",
+        component: () => import("pages/boletas-pendientes/boletas-view.vue"),
+      },
+      {
         name: "servicios",
         path: "servicios",
         component: () => import("pages/servicios/servicios-view.vue"),
@@ -63,9 +68,9 @@ const routes = [
     component: () => import("pages/login/login-view.vue"),
   },
   {
-    path: '/reset-password/:token',
-    component: () => import('pages/reset-password/reset-password.vue'),
-    name: 'reset-password'
+    path: "/reset-password/:token",
+    component: () => import("pages/reset-password/reset-password.vue"),
+    name: "reset-password",
   },
 
   // Always leave this as last one,

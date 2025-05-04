@@ -29,6 +29,19 @@ export const useUserStore = defineStore("User", {
         ? JSON.parse(atob(LocalStorage.getItem("-oUI"))).aOpcMenuNew
         : [];
     },
+    getTheme() {
+      return this.oUser
+        ? JSON.parse(atob(this.oUser)).theme
+        : LocalStorage.getItem("-oUI")
+        ? JSON.parse(atob(LocalStorage.getItem("-oUI"))).theme
+        : "light";
+    },
+    setTheme(theme) {
+      this.oUser = this.getUser();
+      this.oUser.theme = theme;
+      LocalStorage.set("-oUI", btoa(JSON.stringify(this.oUser)));
+      this.oUser = LocalStorage.getItem("-oUI");
+    },
     logout() {
       LocalStorage.remove("-oUI");
       this.oUser = null;

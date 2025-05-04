@@ -117,25 +117,87 @@ export default {
 
     return sMessage;
   },
-  async requestService() {
+  async requestService(oEvent, oData) {
     this.$q.loading.show();
     try {
-      const { data } = await serviceHttp.post(`/platform_request`, {
-        platform: this.selectedPlatform.value,
-        sAction: "/" + this.selectedService.value,
-      });
+      const { data } = await serviceHttp.post(
+        `/platform_request`,
+        oData
+          ? oData
+          : {
+              platform: this.selectedPlatform.value,
+              sAction: "/" + this.selectedService.value,
+            }
+      );
 
       this.$q.loading.hide();
+      if (data.hasMultipleEmails) {
+        if (!Array.isArray(data.data) || data.data.length === 0) {
+          this.$q.notify({
+            color: "red-8",
+            textColor: "white",
+            icon: "error",
+            message: "No se encontraron correos electrónicos",
+          });
+          return;
+        }
 
-      if (Array.isArray(data.data)) {
-        // Limpiar mensajes anteriores
-        this.messageList = [];
+        const emailOptions = data.data.map((email) => {
+          const emailStr = String(email);
+          return {
+            label: emailStr,
+            value: emailStr,
+          };
+        });
 
-        // Procesar cada mensaje
-        for (const item of data.data) {
-          // if (!item.bContainer) {
-          await this.addMessageWithDelay(item.sContent);
-          // }
+        this.$q
+          .dialog({
+            title: "👤 Selecciona una cuenta",
+            message:
+              "🔍 Hemos detectado múltiples cuentas asociadas. Por favor, selecciona una:",
+            options: {
+              type: "radio",
+              model: "",
+              items: emailOptions,
+            },
+            persistent: true,
+            cancel: true,
+          })
+          .onOk((selectedEmail) => {
+            if (selectedEmail) {
+              this.requestService(null, {
+                platform: this.selectedPlatform.value,
+                sAction: "/" + this.selectedService.value,
+                sEmail: selectedEmail,
+              });
+            } else {
+              this.$q.notify({
+                color: "red-8",
+                textColor: "white",
+                icon: "error",
+                message: "No se seleccionó ninguna cuenta",
+              });
+            }
+          })
+          .onCancel(() => {
+            this.$q.notify({
+              color: "red-8",
+              textColor: "white",
+              icon: "error",
+              message: "Servicio cancelado. No se seleccionó ninguna cuenta",
+            });
+          });
+      } else {
+        if (Array.isArray(data.data)) {
+          // Limpiar mensajes anteriores
+          this.messageList = [];
+
+          // Procesar cada mensaje
+          for (const item of data.data) {
+            // if (!item.bContainer) {
+            await this.addMessageWithDelay(item.sContent);
+            // }
+          }
         }
       }
     } catch (error) {

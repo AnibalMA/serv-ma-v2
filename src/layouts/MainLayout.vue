@@ -434,7 +434,7 @@ import { serviceHttp } from "src/utils/serviceHttp";
 export default {
   data() {
     return {
-      activateDark: Dark.isActive || false,
+      activateDark: useUserStore().getTheme() === "dark" ? true : false,
       user: useUserStore().getUser(),
       drawer: false,
       images: {
@@ -490,6 +490,28 @@ export default {
     },
     onChangeTheme: function () {
       Dark.toggle();
+      // Actualizar la preferencia de tema en la base de datos
+      this.updateThemePreference();
+      // Actualizar el valor de activateDark para mantener sincronizado el toggle
+      this.activateDark = Dark.isActive;
+
+      useUserStore().setTheme(Dark.isActive? "dark" : "light");
+    },
+    async updateThemePreference() {
+      try {
+        await serviceHttp.post("/change_theme", {
+          theme: Dark.isActive ? "dark" : "light"
+        });
+        console.log("Preferencia de tema actualizada en la base de datos");
+      } catch (error) {
+        console.error("Error al actualizar la preferencia de tema:", error);
+        // Opcionalmente mostrar una notificación al usuario
+        this.$q.notify({
+          type: "negative",
+          message: "No se pudo guardar la preferencia de tema",
+          timeout: 2000
+        });
+      }
     },
     connectSocket() {
       this.socket = io(process.env.API_BACKEND, {
@@ -654,5 +676,10 @@ export default {
       this.socket.disconnect();
     }
   },
+  created() {
+    // Inicializar el tema basado en la preferencia guardada
+    const savedTheme = useUserStore().getTheme();
+    Dark.set(savedTheme === 'dark');
+  }
 };
 </script>
