@@ -66,7 +66,7 @@ export default {
         id: `user-${userInfo.id_usuario}`,
         label: `${userInfo.nombre_usuario || ""} - S/.${
           userInfo.total_pendiente
-        } - F.V (${
+        } - Vto: ${
           userInfo.fecha_vencimiento
             ? new Date(userInfo.fecha_vencimiento).toLocaleDateString("es-ES", {
                 day: "2-digit",
@@ -74,7 +74,7 @@ export default {
                 year: "numeric",
               })
             : "No determinado"
-        })`,
+        }`,
         icon: "person",
         iconColor: "primary",
         count: userInfo.cantidad_boletas,
@@ -85,17 +85,15 @@ export default {
       boletas.forEach((boleta) => {
         userNode.children.push({
           id: `boleta-${boleta.id}`,
-          label: `${boleta.cod_boleta} - S/.${boleta.monto_facturado} - ${
-            boleta.desc_estado
-          } - F.V (${
+          label: `${boleta.cod_boleta} - S/.${boleta.monto_facturado} - Vto: ${
             boleta.fecha_vencimiento
               ? new Date(boleta.fecha_vencimiento).toLocaleDateString("es-ES", {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",
                 })
-              : "No determinado"
-          })`,
+              : "∞"
+          }`,
           icon: "receipt",
           iconColor: boleta.desc_estado === "Pendiente" ? "orange" : "green",
           boletaData: boleta,
