@@ -21,7 +21,7 @@
           <q-btn
             color="primary"
             label="Generar"
-            @click="onGenBoleta"
+            @click="showBoletaDialog = true"
             v-if="this.optUser.value"
           />
         </div>
@@ -194,6 +194,50 @@
         </q-table>
       </div>
     </div>
+
+    <!-- Diálogo de confirmación para generar boleta -->
+    <q-dialog v-model="showBoletaDialog" persistent>
+      <q-card class="q-pa-md" style="min-width: 400px">
+        <q-card-section>
+          <div class="text-h6">Opciones de Generación de Boleta</div>
+          <div class="text-subtitle2 text-grey-7">
+            Selecciona las opciones para la generación de la boleta
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <div class="q-gutter-md">
+            <q-checkbox
+              v-model="sendEmail"
+              label="Enviar notificación por correo electrónico"
+              color="primary"
+            />
+
+            <q-checkbox
+              v-model="sendSMS"
+              label="Enviar notificación por SMS"
+              color="primary"
+            />
+
+            <q-checkbox
+              v-model="attachFile"
+              label="Incluir archivo adjunto"
+              color="primary"
+            />
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            label="Cancelar"
+            color="grey"
+            @click="showBoletaDialog = false"
+          />
+          <q-btn label="Generar Boleta" color="primary" @click="onGenBoletas" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 

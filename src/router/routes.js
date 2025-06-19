@@ -72,6 +72,17 @@ const routes = [
     component: () => import("pages/reset-password/reset-password.vue"),
     name: "reset-password",
   },
+  {
+    path: "/platforms",
+    component: () => import("layouts/MainLayout.vue"),
+    children: [
+      {
+        path: "",
+        component: () => import("pages/platforms/PlatformsView.vue"),
+        meta: { requiresAuth: true },
+      },
+    ],
+  },
 
   // Always leave this as last one,
   // but you can also remove it

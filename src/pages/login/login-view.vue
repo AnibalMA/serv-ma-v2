@@ -2,6 +2,60 @@
   <q-layout view="lHh Lpr lFf">
     <q-page-container>
       <q-page class="flex flex-center bg-login">
+        <!-- Mensaje de estado del servidor -->
+        <q-banner
+          v-if="
+            showServerStatus ||
+            !serverStatus.isOnline ||
+            serverStatus.isInMaintenance
+          "
+          :class="serverStatus.isInMaintenance ? 'bg-orange-8' : 'bg-red-8'"
+          text-color="white"
+          class="fixed-top z-top"
+        >
+          <template v-slot:avatar>
+            <q-icon
+              :name="serverStatus.isInMaintenance ? 'build' : 'cloud_off'"
+              color="white"
+            />
+          </template>
+
+          <div v-if="!serverStatus.isOnline">
+            <strong>Servidor no disponible</strong><br />
+            <span>{{
+              statusError || "No se puede conectar con el servidor"
+            }}</span>
+          </div>
+
+          <div v-else-if="serverStatus.isInMaintenance">
+            <strong style="color: white">Sistema en mantenimiento</strong><br />
+            <span style="color: white">{{
+              serverStatus.maintenanceMessage
+            }}</span>
+            <div v-if="serverStatus.estimatedDowntime" class="q-mt-xs">
+              <small
+                >Tiempo estimado: {{ serverStatus.estimatedDowntime }}</small
+              >
+            </div>
+          </div>
+
+          <template v-slot:action>
+            <q-btn
+              flat
+              color="white"
+              label="Reintentar"
+              @click="retryConnection"
+              :loading="isCheckingStatus"
+            />
+            <q-btn
+              flat
+              color="white"
+              icon="close"
+              @click="showServerStatus = false"
+            />
+          </template>
+        </q-banner>
+
         <q-card
           class="q-pa-md shadow-2 card-login q-pb-xl"
           style="border-radius: 18px; background-color: #173153; width: 350px"
@@ -16,7 +70,29 @@
               Inicio de sesión
             </div>
             <div>Accede con tu cuenta</div>
+
+            <!-- Indicador de estado del servidor -->
+            <div class="q-mt-sm">
+              <q-chip
+                :color="
+                  serverStatus.isOnline && !serverStatus.isInMaintenance
+                    ? 'green'
+                    : 'red'
+                "
+                text-color="white"
+                size="sm"
+                :icon="
+                  serverStatus.isOnline && !serverStatus.isInMaintenance
+                    ? 'cloud_done'
+                    : 'cloud_off'
+                "
+              >
+                {{ serverStatus.serviceName || "ServMA" }}
+                {{ serverStatus.version }}
+              </q-chip>
+            </div>
           </q-card-section>
+
           <q-card-section>
             <q-input
               dense
@@ -26,6 +102,7 @@
               bg-color="primary"
               v-model="email"
               label="Correo electrónico"
+              :disable="!serverStatus.isOnline || serverStatus.isInMaintenance"
             ></q-input>
             <q-input
               dense
@@ -38,8 +115,10 @@
               type="password"
               label="Contraseña"
               @keyup.enter="login()"
+              :disable="!serverStatus.isOnline || serverStatus.isInMaintenance"
             ></q-input>
           </q-card-section>
+
           <q-card-section>
             <q-btn
               style="border-radius: 8px"
@@ -50,9 +129,10 @@
               no-caps
               @click="login()"
               class="full-width"
+              :disable="!serverStatus.isOnline || serverStatus.isInMaintenance"
             ></q-btn>
-            <!-- <span style="color: #eee;">{{ userStore.sToken }}</span> -->
           </q-card-section>
+
           <q-card-section class="text-center">
             <q-btn
               flat
@@ -61,6 +141,7 @@
               label="¿Olvidaste tu contraseña?"
               no-caps
               @click="forgotPassword()"
+              :disable="!serverStatus.isOnline || serverStatus.isInMaintenance"
             />
           </q-card-section>
         </q-card>

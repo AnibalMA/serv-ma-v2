@@ -89,11 +89,25 @@ export default {
     // Lógica para recuperar la contraseña
     console.log("Olvidaste tu contraseña?");
   },
-  onGenBoleta: function () {
+  onGenBoletas: function () {
+    this.showBoletaDialog = false;
+
+    const params = {
+      sendEmail: this.sendEmail,
+      sendSMS: this.sendSMS,
+      attachFile: this.attachFile,
+    };
+
     this.$q.loading.show();
 
+    const queryParams = new URLSearchParams({
+      sendEmail: params.sendEmail,
+      sendSMS: params.sendSMS,
+      attachFile: params.attachFile,
+    }).toString();
+
     serviceHttp
-      .get(`/genBoleta/${this.optUser.value}`)
+      .get(`/genBoleta/${this.optUser.value}?${queryParams}`)
       .then(({ data }) => {
         console.log(data);
 

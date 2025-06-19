@@ -4,6 +4,10 @@ export default function () {
   return {
     optBoleta: "Pendientes",
     optUser: "",
+    showBoletaDialog: false,
+    sendEmail: false,
+    sendSMS: false,
+    attachFile: false,
     arr_users: [],
     options: [
       {

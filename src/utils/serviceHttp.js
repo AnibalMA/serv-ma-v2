@@ -6,6 +6,7 @@ import { Loading } from "quasar";
 // import router from 'src/router';
 
 const axios_servma = axios.create({ baseURL: process.env.API_BACKEND });
+const axios_servma_b = axios.create({ baseURL: process.env.API_BACKEND_B });
 const getHeaders = () => {
   const oUser = LocalStorage.getItem("-oUI");
   const oHeaders = {
@@ -130,5 +131,91 @@ const serviceHttp = {
     });
   },
 };
+const serviceHttpB = {
+  get(url) {
+    return new Promise((resolve, reject) => {
+      axios_servma_b
+        .get(url)
+        .then((response) => {
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  },
+  post(url, data, options) {
+    return new Promise((resolve, reject) => {
+      axios_servma_b
+        .post(url, data, options ? options : null)
+        .then((response) => {
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  },
+  put(url, data) {
+    return new Promise((resolve, reject) => {
+      axios_servma_b
+        .put(url, data)
+        .then((response) => {
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  },
+  delete(url) {
+    return new Promise((resolve, reject) => {
+      axios_servma_b
+        .delete(url)
+        .then((response) => {
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  },
+  patch(url, data) {
+    return new Promise((resolve, reject) => {
+      axios_servma_b
+        .patch(url, data)
+        .then((response) => {
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  },
+  head(url) {
+    return new Promise((resolve, reject) => {
+      axios_servma_b
+        .head(url)
+        .then((response) => {
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  },
+  options(url) {
+    return new Promise((resolve, reject) => {
+      axios_servma_b
+        .options(url)
+        .then((response) => {
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  },
+};
 
-export { serviceHttp };
+export { serviceHttp, serviceHttpB };
