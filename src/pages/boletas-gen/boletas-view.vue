@@ -3,7 +3,7 @@
     <div class="col-12 q-pa-sm">
       <!-- Selector de usuario -->
       <div class="row q-mb-md">
-        <div class="col-6">
+        <div class="col-12 col-md-6">
           Seleccionar usuario:
           <q-select
             v-model="optUser"
@@ -18,13 +18,49 @@
             </template>
           </q-select>
         </div>
-        <div class="col-6 self-center">
-          <q-btn
-            color="primary"
-            label="Generar"
-            @click="showBoletaDialog = true"
-            v-if="this.optUser.value"
-          />
+        <div class="col-12 col-md-6 self-center q-mt-sm q-mt-md-none">
+          <div
+            class="row q-gutter-md items-center justify-center justify-md-start"
+          >
+            <!-- Switch para estado del usuario -->
+            <div
+              v-if="optUser.value"
+              class="row items-center q-gutter-sm user-status-container"
+              :class="
+                userActiveDisplay
+                  ? 'user-status-active'
+                  : 'user-status-inactive'
+              "
+            >
+              <q-icon
+                :name="userActiveDisplay ? 'person' : 'person_off'"
+                :color="userActiveDisplay ? 'positive' : 'negative'"
+                size="sm"
+              />
+              <span class="text-caption text-grey-7">Estado:</span>
+              <q-toggle
+                v-model="userActiveDisplay"
+                @click.prevent="onToggleUserStatus"
+                :color="userActiveDisplay ? 'positive' : 'negative'"
+                :icon="userActiveDisplay ? 'check' : 'close'"
+                size="md"
+              />
+              <span
+                :class="userActiveDisplay ? 'text-positive' : 'text-negative'"
+                class="text-weight-medium text-caption"
+              >
+                {{ userActiveDisplay ? "Activo" : "Inactivo" }}
+              </span>
+            </div>
+
+            <!-- Botón generar -->
+            <q-btn
+              color="primary"
+              label="Generar"
+              @click="showBoletaDialog = true"
+              v-if="this.optUser.value"
+            />
+          </div>
         </div>
       </div>
 
@@ -120,10 +156,20 @@
                     >
                     <q-item-label caption v-if="col.name == 'desc_estado'">
                       <q-chip
-                        :color="col.value == 'Pendiente' ? 'orange' : 'green'"
+                        :color="
+                          props.row.bProcessValidation
+                            ? 'blue'
+                            : col.value == 'Pendiente'
+                            ? 'orange'
+                            : 'green'
+                        "
                         text-color="white"
                       >
-                        {{ col.value }}
+                        {{
+                          props.row.bProcessValidation
+                            ? "En Validación"
+                            : col.value
+                        }}
                       </q-chip>
                     </q-item-label>
                     <q-item-label caption v-if="col.name == 'actions_boleta'">
@@ -193,11 +239,19 @@
             <q-td :props="props">
               <q-chip
                 :color="
-                  props.row.desc_estado == 'Pendiente' ? 'orange' : 'green'
+                  props.row.bProcessValidation
+                    ? 'blue'
+                    : props.row.desc_estado == 'Pendiente'
+                    ? 'orange'
+                    : 'green'
                 "
                 text-color="white"
               >
-                {{ props.row.desc_estado }}
+                {{
+                  props.row.bProcessValidation
+                    ? "En Validación"
+                    : props.row.desc_estado
+                }}
               </q-chip>
             </q-td>
           </template>
@@ -456,6 +510,9 @@
         <q-card class="dialog-card">
           <q-card-section>
             <div class="text-h6">Editar servicio</div>
+            <div class="text-subtitle2 text-grey-7">
+              Modifica el perfil y PIN del servicio
+            </div>
           </q-card-section>
           <q-card-section class="q-pt-none">
             <q-input
@@ -463,21 +520,56 @@
               v-model="editingServicio.Grupo"
               label="Grupo"
               :readonly="true"
+              class="q-mb-md"
             />
             <q-input
               filled
               v-model="editingServicio.Cuenta"
               label="Cuenta"
               :readonly="true"
+              class="q-mb-md"
             />
             <q-input
               filled
               v-model="editingServicio.Plataforma"
               label="Plataforma"
               :readonly="true"
+              class="q-mb-md"
             />
-            <q-input filled v-model="editingServicio.Perfil" label="Perfil" />
-            <q-input filled v-model="editingServicio.Pin" label="PIN" />
+            <q-input
+              filled
+              v-model="editingServicio.Perfil"
+              label="Perfil *"
+              :rules="[
+                (val) =>
+                  (val && val.trim().length > 0) || 'El perfil es requerido',
+                (val) =>
+                  (val && val.length <= 255) ||
+                  'El perfil no puede exceder 255 caracteres',
+              ]"
+              maxlength="255"
+              counter
+              class="q-mb-md"
+            />
+            <q-input
+              filled
+              v-model="editingServicio.Pin"
+              label="PIN (opcional)"
+              :rules="[
+                (val) =>
+                  !val ||
+                  val.length >= 4 ||
+                  'El PIN debe tener al menos 4 caracteres',
+                (val) =>
+                  !val ||
+                  val.length <= 8 ||
+                  'El PIN no puede exceder 8 caracteres',
+              ]"
+              maxlength="8"
+              counter
+              class="q-mb-md"
+              hint="Deja vacío para no modificar el PIN actual"
+            />
             <q-select
               filled
               v-model="editingServicio.PayDay"
@@ -486,15 +578,25 @@
               emit-value
               map-options
               :readonly="true"
+              class="q-mb-md"
             />
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn flat label="Cancelar" color="primary" v-close-popup />
+            <q-btn
+              flat
+              label="Cancelar"
+              color="primary"
+              @click="cancelEditServicio"
+            />
             <q-btn
               flat
               label="Guardar"
               color="primary"
               @click="confirmEditServicio"
+              :disable="
+                !editingServicio.Perfil ||
+                editingServicio.Perfil.trim().length === 0
+              "
             />
           </q-card-actions>
         </q-card>
@@ -566,6 +668,27 @@
 
 .q-field {
   margin-bottom: 16px;
+}
+
+/* Estilos para el switch de estado del usuario */
+.user-status-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.user-status-active {
+  background-color: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.user-status-inactive {
+  background-color: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.3);
 }
 
 /* Estilos para highlight de estados de servicios */
@@ -687,6 +810,26 @@
   .q-btn--dense.q-btn--round {
     min-width: 32px !important;
     min-height: 32px !important;
+  }
+
+  /* Estilos responsivos para el switch de estado */
+  .user-status-container {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 8px;
+  }
+
+  .user-status-container .text-caption {
+    font-size: 10px;
+  }
+}
+
+/* Estilos para pantallas pequeñas */
+@media (max-width: 768px) {
+  .user-status-container {
+    min-width: 200px;
+    justify-content: center;
   }
 }
 </style>

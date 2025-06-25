@@ -5,6 +5,10 @@ export default function () {
     activeTab: "boletas",
     optBoleta: "Pendientes",
     optUser: "",
+    userActive: false, // Estado del usuario seleccionado
+    userActiveDisplay: false, // Estado visual del switch (separado del estado real)
+    inactivarServicios: false, // Si también inactivar los servicios del usuario
+    usersData: [], // Almacena la información completa de todos los usuarios
     showBoletaDialog: false,
     sendEmail: false,
     sendSMS: false,

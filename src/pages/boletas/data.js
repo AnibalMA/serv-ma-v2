@@ -13,6 +13,14 @@ export default function () {
         value: "Paid",
       },
     ],
+    // Variables para el modal de pago
+    showPaymentModal: false,
+    selectedBoleta: null,
+    paymentOptions: [],
+    selectedPaymentMethod: null,
+    paymentCapture: null,
+    captureFile: null,
+    paymentComment: "", // Campo para comentarios del pago
     arr_boletas_col: [
       {
         name: "cod_boleta",
