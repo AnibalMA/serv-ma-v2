@@ -77,13 +77,6 @@ export default function () {
         sortable: true,
       },
       {
-        name: "actions",
-        label: "Acciones",
-        headerStyle: "width: 15rem",
-        align: "center",
-        sortable: false,
-      },
-      {
         name: "actions_boleta",
         label: "Acciones",
         headerStyle: "width: 15rem",

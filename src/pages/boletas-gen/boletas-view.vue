@@ -61,7 +61,7 @@
                   'fecha_emision',
                   'monto_facturado',
                   'desc_estado',
-                  'actions',
+                  'actions_boleta',
                 ]
               : [
                   'cod_boleta',
@@ -74,7 +74,6 @@
                 ]
           "
         >
-          'fecha_cancelado', 'monto_cancelado', 'desc_estado', 'actions', ] " >
           <template v-slot:top-right>
             <q-select
               v-model="optBoleta"
@@ -114,9 +113,7 @@
                   <q-item-section>
                     <q-item-label
                       v-if="
-                        !['desc_estado', 'actions', 'actions_boleta'].includes(
-                          col.name
-                        )
+                        !['desc_estado', 'actions_boleta'].includes(col.name)
                       "
                       caption
                       >{{ col.value }}</q-item-label
@@ -128,23 +125,6 @@
                       >
                         {{ col.value }}
                       </q-chip>
-                    </q-item-label>
-                    <q-item-label caption v-if="col.name == 'actions'">
-                      <q-btn
-                        icon="picture_as_pdf"
-                        @click="onViewBoleta(props.row)"
-                        round
-                        color="red"
-                        class="q-mr-sm"
-                        dense
-                      ></q-btn>
-                      <q-btn
-                        icon="cloud_download"
-                        @click="onDownloadBoleta(props.row)"
-                        round
-                        color="primary"
-                        dense
-                      ></q-btn>
                     </q-item-label>
                     <q-item-label caption v-if="col.name == 'actions_boleta'">
                       <q-btn
@@ -219,25 +199,6 @@
               >
                 {{ props.row.desc_estado }}
               </q-chip>
-            </q-td>
-          </template>
-          <template v-slot:body-cell-actions="props">
-            <q-td :props="props">
-              <q-btn
-                icon="picture_as_pdf"
-                @click="onViewBoleta(props.row)"
-                round
-                color="red"
-                class="q-mr-sm"
-                dense
-              ></q-btn>
-              <q-btn
-                icon="cloud_download"
-                @click="onDownloadBoleta(props.row)"
-                round
-                color="primary"
-                dense
-              ></q-btn>
             </q-td>
           </template>
           <template v-slot:body-cell-actions_boleta="props">
