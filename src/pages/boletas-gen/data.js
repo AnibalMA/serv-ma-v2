@@ -2,12 +2,14 @@ import { date } from "quasar";
 
 export default function () {
   return {
+    activeTab: "boletas",
     optBoleta: "Pendientes",
     optUser: "",
     showBoletaDialog: false,
     sendEmail: false,
     sendSMS: false,
     attachFile: false,
+    useNextMonth: true,
     arr_users: [],
     options: [
       {
@@ -81,7 +83,96 @@ export default function () {
         align: "center",
         sortable: false,
       },
+      {
+        name: "actions_boleta",
+        label: "Acciones",
+        headerStyle: "width: 15rem",
+        align: "center",
+        sortable: false,
+      },
     ],
     arr_boletas: [],
+
+    // Columnas para la tabla de servicios
+    arr_servicios_col: [
+      {
+        name: "Grupo",
+        label: "Grupo",
+        field: "Grupo",
+        sortable: true,
+        headerStyle: "width: 8rem",
+        align: "left",
+      },
+      {
+        name: "Plataforma",
+        label: "Plataforma",
+        field: "Plataforma",
+        sortable: true,
+        headerStyle: "width: 8rem",
+        align: "left",
+      },
+      {
+        name: "Perfil",
+        label: "Perfil",
+        field: "Perfil",
+        sortable: true,
+        headerStyle: "width: 10rem",
+        align: "left",
+      },
+      {
+        name: "Pin",
+        label: "PIN",
+        field: "Pin",
+        sortable: false,
+        headerStyle: "width: 6rem",
+        align: "center",
+      },
+      {
+        name: "PayDay",
+        label: "Día de Pago",
+        field: "PayDay",
+        sortable: true,
+        headerStyle: "width: 6rem",
+        align: "center",
+      },
+      {
+        name: "Estado",
+        label: "Estado",
+        field: "Estado",
+        sortable: true,
+        headerStyle: "width: 8rem",
+        align: "center",
+      },
+      {
+        name: "actions",
+        label: "Acciones",
+        headerStyle: "width: 12rem",
+        align: "center",
+        sortable: false,
+      },
+    ],
+    arr_servicios: [],
+
+    // Dialog states
+    showDiaPagoDialog: false,
+    showEditDialog: false,
+    selectedServicio: null,
+    nuevoDiaPago: null,
+    editingServicio: {
+      Id: null,
+      IdGrupo: null,
+      IdPlataforma: null,
+      Grupo: "",
+      Plataforma: "",
+      Perfil: "",
+      Pin: "",
+      PayDay: null,
+    },
+
+    // Opciones para días del mes
+    diasDelMes: Array.from({ length: 31 }, (_, i) => ({
+      label: `${i + 1}`,
+      value: i + 1,
+    })),
   };
 }
