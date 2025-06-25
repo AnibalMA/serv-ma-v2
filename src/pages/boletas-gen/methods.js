@@ -327,6 +327,7 @@ export default {
       IdPlataforma: oServicio.IdPlataforma,
       Grupo: oServicio.Grupo,
       Plataforma: oServicio.Plataforma,
+      Cuenta: oServicio.Cuenta,
       Perfil: oServicio.Perfil,
       Pin: oServicio.Pin,
       PayDay: oServicio.PayDay,
@@ -341,7 +342,6 @@ export default {
       .put(`/updateServicio/${this.editingServicio.id}`, {
         perfil: this.editingServicio.Perfil,
         pin: this.editingServicio.Pin,
-        dia_pago: this.editingServicio.PayDay,
       })
       .then(({ data }) => {
         this.$q.loading.hide();

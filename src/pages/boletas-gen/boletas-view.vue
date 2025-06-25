@@ -466,6 +466,12 @@
             />
             <q-input
               filled
+              v-model="editingServicio.Cuenta"
+              label="Cuenta"
+              :readonly="true"
+            />
+            <q-input
+              filled
               v-model="editingServicio.Plataforma"
               label="Plataforma"
               :readonly="true"

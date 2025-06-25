@@ -105,6 +105,14 @@ export default function () {
         align: "left",
       },
       {
+        name: "Cuenta",
+        label: "Cuenta",
+        field: "Cuenta",
+        sortable: true,
+        headerStyle: "width: 10rem",
+        align: "left",
+      },
+      {
         name: "Perfil",
         label: "Perfil",
         field: "Perfil",
@@ -157,6 +165,7 @@ export default function () {
       IdPlataforma: null,
       Grupo: "",
       Plataforma: "",
+      Cuenta: "",
       Perfil: "",
       Pin: "",
       PayDay: null,
