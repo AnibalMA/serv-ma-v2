@@ -309,7 +309,9 @@ export default {
 
               // Recargar la lista de boletas
               this.getList(
-                this.optBoleta === "Pendientes" ? "Pending" : "Paid",
+                this.optBoleta?.value == undefined
+                  ? "Pending"
+                  : this.optBoleta.value,
                 this.optUser?.value
               );
             } else {
