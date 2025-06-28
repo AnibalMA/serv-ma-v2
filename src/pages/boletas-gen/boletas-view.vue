@@ -582,7 +582,7 @@
                   (val !== null && val !== undefined && val >= 0) ||
                   'El monto es requerido y debe ser mayor o igual a 0',
                 (val) =>
-                  val <= 999999.99 || 'El monto no puede exceder $999,999.99',
+                  val <= 999999.99 || 'El monto no puede exceder S/999,999.99',
               ]"
               prefix="S/"
               class="q-mb-md"
