@@ -347,6 +347,7 @@ export default {
       Perfil: oServicio.Perfil,
       Pin: oServicio.Pin,
       PayDay: oServicio.PayDay,
+      Monto: oServicio.Monto || 0,
     };
     this.showEditDialog = true;
   },
@@ -363,6 +364,7 @@ export default {
       Perfil: "",
       Pin: "",
       PayDay: null,
+      Monto: null,
     };
     this.showEditDialog = false;
   },
@@ -378,6 +380,31 @@ export default {
         textColor: "white",
         icon: "warning",
         message: "El perfil es requerido",
+      });
+      return;
+    }
+
+    // Validar monto
+    if (
+      this.editingServicio.Monto === null ||
+      this.editingServicio.Monto === undefined ||
+      this.editingServicio.Monto < 0
+    ) {
+      this.$q.notify({
+        color: "orange-8",
+        textColor: "white",
+        icon: "warning",
+        message: "El monto es requerido y debe ser mayor o igual a 0",
+      });
+      return;
+    }
+
+    if (this.editingServicio.Monto > 999999.99) {
+      this.$q.notify({
+        color: "orange-8",
+        textColor: "white",
+        icon: "warning",
+        message: "El monto no puede exceder S/999,999.99",
       });
       return;
     }
@@ -403,6 +430,7 @@ export default {
     const payload = {
       id_usuario_servicio: this.editingServicio.Id,
       desc_perfil: this.editingServicio.Perfil.trim(),
+      monto: parseFloat(this.editingServicio.Monto).toFixed(2),
     };
 
     // Agregar PIN solo si se proporciona y no está vacío
@@ -436,6 +464,7 @@ export default {
             Perfil: "",
             Pin: "",
             PayDay: null,
+            Monto: null,
           };
 
           this.getServiciosList(this.optUser?.value);

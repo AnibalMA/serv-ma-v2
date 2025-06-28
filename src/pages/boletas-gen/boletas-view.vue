@@ -511,7 +511,7 @@
           <q-card-section>
             <div class="text-h6">Editar servicio</div>
             <div class="text-subtitle2 text-grey-7">
-              Modifica el perfil y PIN del servicio
+              Modifica el perfil, PIN y monto del servicio
             </div>
           </q-card-section>
           <q-card-section class="q-pt-none">
@@ -570,6 +570,23 @@
               class="q-mb-md"
               hint="Deja vacío para no modificar el PIN actual"
             />
+            <q-input
+              filled
+              v-model.number="editingServicio.Monto"
+              label="Monto *"
+              type="number"
+              step="0.01"
+              min="0"
+              :rules="[
+                (val) =>
+                  (val !== null && val !== undefined && val >= 0) ||
+                  'El monto es requerido y debe ser mayor o igual a 0',
+                (val) =>
+                  val <= 999999.99 || 'El monto no puede exceder $999,999.99',
+              ]"
+              prefix="S/"
+              class="q-mb-md"
+            />
             <q-select
               filled
               v-model="editingServicio.PayDay"
@@ -595,7 +612,10 @@
               @click="confirmEditServicio"
               :disable="
                 !editingServicio.Perfil ||
-                editingServicio.Perfil.trim().length === 0
+                editingServicio.Perfil.trim().length === 0 ||
+                editingServicio.Monto === null ||
+                editingServicio.Monto === undefined ||
+                editingServicio.Monto < 0
               "
             />
           </q-card-actions>

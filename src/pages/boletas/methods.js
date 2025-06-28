@@ -217,7 +217,7 @@ export default {
         });
 
         // Actualizar la lista de boletas para reflejar los cambios del backend
-        this.getList(this.optBoleta.value || this.optBoleta);
+        this.getList(this.optBoleta.value || "Pending");
 
         this.showPaymentModal = false;
       } else {

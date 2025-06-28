@@ -149,6 +149,15 @@ export default function () {
         align: "center",
       },
       {
+        name: "Monto",
+        label: "Monto",
+        field: "Monto",
+        sortable: true,
+        headerStyle: "width: 8rem",
+        align: "center",
+        format: (val) => (val ? `S/${parseFloat(val).toFixed(2)}` : "S/0.00"),
+      },
+      {
         name: "actions",
         label: "Acciones",
         headerStyle: "width: 12rem",
@@ -173,6 +182,7 @@ export default function () {
       Perfil: "",
       Pin: "",
       PayDay: null,
+      Monto: null,
     },
 
     // Opciones para días del mes
