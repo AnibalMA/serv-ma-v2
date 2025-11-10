@@ -182,6 +182,18 @@
                           </div>
                         </div>
                         <div class="col-auto text-right">
+                          <q-btn
+                            flat
+                            dense
+                            round
+                            color="primary"
+                            icon="content_copy"
+                            size="sm"
+                            @click="copyPerfilInfo(platform, grupo, perfil)"
+                            class="q-mb-xs"
+                          >
+                            <q-tooltip>Copiar información</q-tooltip>
+                          </q-btn>
                           <div class="text-weight-bold text-green-8">
                             {{ perfil.monto_pagar }}
                           </div>
