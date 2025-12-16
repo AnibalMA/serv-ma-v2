@@ -4,7 +4,23 @@ import { useMessages } from "./composables/useMessages";
 import MessageDisplay from "./components/MessageDisplay.vue";
 
 const { messages, isTyping, addMessage, clearMessages } = useMessages();
+
+// Variable para almacenar la referencia al socket del layout
+let socketInstance = null;
+
 export default {
+  // Método para obtener la instancia del socket desde el layout padre
+  getSocketFromParent() {
+    // Buscar el componente MainLayout que tiene el socket
+    let parent = this.$parent;
+    while (parent) {
+      if (parent.socket) {
+        return parent.socket;
+      }
+      parent = parent.$parent;
+    }
+    return null;
+  },
   onPlatformChange(platform) {
     this.selectedService = null;
     this.loadingServices = true;
@@ -118,6 +134,105 @@ export default {
     return sMessage;
   },
   async requestService(oEvent, oData) {
+    // Si la acción es automate_tv_login y no se ha proporcionado el código, solicitarlo
+    if (!oData && this.selectedService.value === "automate_tv_login") {
+      this.$q
+        .dialog({
+          title: "📺 Código de TV",
+          message:
+            "Por favor, ingresa el código de 8 dígitos que aparece en tu TV (ejemplo: 1234-4321):",
+          prompt: {
+            model: "",
+            type: "text",
+            mask: "####-####",
+            placeholder: "1234-4321",
+            maxlength: 9,
+          },
+          persistent: true,
+          cancel: true,
+        })
+        .onOk((tvCode) => {
+          // Eliminar el guión y validar que sean 8 dígitos
+          const cleanCode = tvCode.replace("-", "");
+          if (
+            cleanCode &&
+            cleanCode.length === 8 &&
+            /^\d{8}$/.test(cleanCode)
+          ) {
+            this.requestService(null, {
+              platform: this.selectedPlatform.value,
+              sAction: "/" + this.selectedService.value,
+              sTvCode: cleanCode,
+            });
+          } else {
+            this.$q.notify({
+              color: "red-8",
+              textColor: "white",
+              icon: "error",
+              message: "Por favor ingresa un código válido de 8 dígitos",
+            });
+          }
+        })
+        .onCancel(() => {
+          this.$q.notify({
+            color: "red-8",
+            textColor: "white",
+            icon: "info",
+            message: "Operación cancelada",
+          });
+        });
+      return;
+    }
+
+    // 👇 CONFIGURAR LISTENER DE WEBSOCKET SEGÚN LA ACCIÓN
+    const websocketActions = [
+      "automate_tv_login",
+      "active_login",
+      "active_hogar_upd",
+      "active_hogar_change",
+      "get_code_temporal",
+      "get_code",
+    ];
+
+    const currentAction = this.selectedService.value;
+
+    if (websocketActions.includes(currentAction)) {
+      // Obtener socket del layout padre
+      socketInstance = this.getSocketFromParent();
+
+      if (socketInstance && socketInstance.connected) {
+        // console.log(`✅ Socket disponible para ${currentAction}`);
+
+        // Determinar qué evento escuchar según la acción
+        const eventName =
+          currentAction === "automate_tv_login"
+            ? "tv_login_progress"
+            : "email_check_progress";
+
+        // Remover listeners anteriores para evitar duplicados
+        socketInstance.off("tv_login_progress");
+        socketInstance.off("email_check_progress");
+
+        // Escuchar actualizaciones del proceso
+        socketInstance.on(eventName, (data) => {
+          // console.log(`📡 Actualización [${eventName}] recibida:`, data.step);
+
+          // Agregar mensajes al UI en tiempo real
+          if (data.data && Array.isArray(data.data)) {
+            data.data.forEach((item) => {
+              this.addMessageWithDelay(item.sContent, 100); // Delay corto para WebSocket
+            });
+          }
+        });
+
+        // console.log(`🎧 Listener configurado para evento: ${eventName}`);
+      } else {
+        console.warn(
+          "⚠️ Socket no disponible - Las actualizaciones en tiempo real no estarán disponibles"
+        );
+      }
+    }
+
     this.$q.loading.show();
     try {
       const { data } = await serviceHttp.post(
@@ -165,11 +280,18 @@ export default {
           })
           .onOk((selectedEmail) => {
             if (selectedEmail) {
-              this.requestService(null, {
+              const requestData = {
                 platform: this.selectedPlatform.value,
                 sAction: "/" + this.selectedService.value,
                 sEmail: selectedEmail,
-              });
+              };
+
+              // Si oData tiene sTvCode, incluirlo en la nueva solicitud
+              if (oData && oData.sTvCode) {
+                requestData.sTvCode = oData.sTvCode;
+              }
+
+              this.requestService(null, requestData);
             } else {
               this.$q.notify({
                 color: "red-8",
@@ -223,8 +345,8 @@ export default {
     }
   },
 
-  async addMessageWithDelay(content) {
-    let iDelay = 500;
+  async addMessageWithDelay(content, customDelay = null) {
+    let iDelay = customDelay !== null ? customDelay : 500;
     await new Promise((resolve) => setTimeout(resolve, iDelay));
     this.messageList.push(content);
 

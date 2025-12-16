@@ -1,6 +1,7 @@
 export default function () {
-    return {
-        email: "",
-        password: "",
-    };
+  return {
+    email: "",
+    password: "",
+    showServerStatus: false,
+  };
 }

@@ -5,8 +5,14 @@ import { Notify } from "quasar";
 import { Loading } from "quasar";
 // import router from 'src/router';
 
-const axios_servma = axios.create({ baseURL: process.env.API_BACKEND });
-const axios_servma_b = axios.create({ baseURL: process.env.API_BACKEND_B });
+const axios_servma = axios.create({
+  baseURL: process.env.API_BACKEND,
+  timeout: 180000, // 3 minutos en milisegundos
+});
+const axios_servma_b = axios.create({
+  baseURL: process.env.API_BACKEND_B,
+  timeout: 180000, // 3 minutos en milisegundos
+});
 const getHeaders = () => {
   const oUser = LocalStorage.getItem("-oUI");
   const oHeaders = {

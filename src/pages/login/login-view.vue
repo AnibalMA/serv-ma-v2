@@ -5,11 +5,19 @@
         <!-- Mensaje de estado del servidor -->
         <q-banner
           v-if="
-            showServerStatus ||
-            !serverStatus.isOnline ||
-            serverStatus.isInMaintenance
+            !bannerDismissed &&
+            (showServerStatus ||
+              !serverStatus.isOnline ||
+              serverStatus.isInMaintenance ||
+              serverStatus.showMessageTop)
           "
-          :class="serverStatus.isInMaintenance ? 'bg-orange-8' : 'bg-red-8'"
+          :class="
+            serverStatus.isInMaintenance
+              ? 'bg-orange-8'
+              : serverStatus.showMessageTop
+              ? 'bg-primary'
+              : 'bg-red-8'
+          "
           text-color="white"
           class="fixed-top z-top"
         >
@@ -23,8 +31,23 @@
           <div v-if="!serverStatus.isOnline">
             <strong>Servidor no disponible</strong><br />
             <span>{{
-              statusError || "No se puede conectar con el servidor"
+              statusError ||
+              serverStatus.maintenanceMessage ||
+              "No se puede conectar con el servidor"
             }}</span>
+          </div>
+          <div
+            v-else-if="serverStatus.isWorking && serverStatus.showMessageTop"
+          >
+            <strong style="color: white">Sistema:</strong><br />
+            <span style="color: white">{{
+              serverStatus.maintenanceMessage
+            }}</span>
+            <div v-if="serverStatus.estimatedDowntime" class="q-mt-xs">
+              <small
+                >Tiempo estimado: {{ serverStatus.estimatedDowntime }}</small
+              >
+            </div>
           </div>
 
           <div v-else-if="serverStatus.isInMaintenance">
@@ -40,18 +63,18 @@
           </div>
 
           <template v-slot:action>
-            <q-btn
+            <!-- <q-btn
               flat
               color="white"
               label="Reintentar"
               @click="retryConnection"
               :loading="isCheckingStatus"
-            />
+            /> -->
             <q-btn
               flat
               color="white"
               icon="close"
-              @click="showServerStatus = false"
+              @click="bannerDismissed = true"
             />
           </template>
         </q-banner>
@@ -88,7 +111,6 @@
                 "
               >
                 {{ serverStatus.serviceName || "ServMA" }}
-                {{ serverStatus.version }}
               </q-chip>
             </div>
           </q-card-section>
@@ -129,8 +151,18 @@
               no-caps
               @click="login()"
               class="full-width"
-              :disable="!serverStatus.isOnline || serverStatus.isInMaintenance"
+              :disable="isLoginDisabled"
             ></q-btn>
+            <div
+              v-if="
+                !isFormValid &&
+                serverStatus.isOnline &&
+                !serverStatus.isInMaintenance
+              "
+              class="text-center q-mt-sm text-grey-5 text-caption"
+            >
+              Completa los campos para continuar
+            </div>
           </q-card-section>
 
           <q-card-section class="text-center">
