@@ -7,13 +7,13 @@
     <audio
       ref="christmasAudio"
       autoplay
-      loop
       preload="auto"
       muted
+      :src="currentSong.src"
       @timeupdate="updateTime"
       @loadedmetadata="updateDuration"
+      @ended="nextSong"
     >
-      <source src="/last_christmas_sound.mp3" type="audio/mpeg" />
       Tu navegador no soporta el elemento de audio.
     </audio>
 
@@ -275,7 +275,11 @@
         style="border-right: 1px solid #26a69a"
       >
         <q-scroll-area
-          style="height: calc(100% - 150px); margin-top: 150px"
+          style="
+            height: calc(100% - 150px);
+            margin-top: 150px;
+            padding-bottom: 70px;
+          "
           :thumb-style="thumbStyle"
           :bar-style="barStyle"
           dark
@@ -334,8 +338,11 @@
           style="height: calc(100vh - 50px)"
           :thumb-style="thumbStyle"
           :bar-style="barStyle"
+          class="main-content-area"
         >
-          <router-view />
+          <div style="padding-bottom: 70px">
+            <router-view />
+          </div>
         </q-scroll-area>
       </q-page-container>
     </q-layout>
@@ -349,8 +356,18 @@
         <q-card-section class="q-pa-md">
           <div class="row items-center justify-between no-wrap">
             <!-- Icono y controles principales -->
-            <div class="row items-center q-gutter-sm">
+            <div class="row items-center q-gutter-xs">
               <q-icon name="music_note" color="red" size="md" />
+              <q-btn
+                round
+                dense
+                icon="skip_previous"
+                color="red"
+                size="sm"
+                @click="prevSong"
+              >
+                <q-tooltip class="bg-red">Anterior</q-tooltip>
+              </q-btn>
               <q-btn
                 round
                 dense
@@ -366,9 +383,19 @@
               <q-btn
                 round
                 dense
+                icon="skip_next"
+                color="red"
+                size="sm"
+                @click="nextSong"
+              >
+                <q-tooltip class="bg-red">Siguiente</q-tooltip>
+              </q-btn>
+              <q-btn
+                round
+                dense
                 :icon="isMuted ? 'volume_off' : 'volume_up'"
                 color="red"
-                size="md"
+                size="sm"
                 @click="toggleMute"
               >
                 <q-tooltip class="bg-red">{{
@@ -377,11 +404,18 @@
               </q-btn>
             </div>
 
-            <!-- Slider de volumen y tiempo -->
+            <!-- Slider de volumen, nombre de canción y tiempo -->
             <div
-              class="column q-ml-md"
-              style="min-width: 120px; flex: 1; max-width: 180px"
+              class="column q-ml-sm"
+              style="min-width: 140px; flex: 1; max-width: 200px"
             >
+              <div
+                class="text-caption text-center ellipsis"
+                style="font-size: 11px; font-weight: 500"
+                :title="currentSong.title"
+              >
+                🎵 {{ currentSong.title }}
+              </div>
               <q-slider
                 v-model="musicVolume"
                 :min="0"
@@ -395,9 +429,10 @@
               </q-slider>
               <div
                 class="text-caption text-center"
-                style="margin-top: -4px; font-size: 10px"
+                style="margin-top: -6px; font-size: 9px"
               >
-                {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
+                {{ formatTime(currentTime) }} / {{ formatTime(duration) }} •
+                {{ currentSongIndex + 1 }}/{{ playlist.length }}
               </div>
             </div>
           </div>
@@ -526,6 +561,11 @@
     border-radius: 0;
     border-top: 2px solid #f44336;
     margin: 0;
+
+    // Hacer más compacto en móviles
+    .q-card__section {
+      padding: 8px 12px !important;
+    }
   }
 
   // Desktop: flotante a la derecha
@@ -539,7 +579,18 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       border-radius: 12px;
       border: 2px solid #f44336;
+
+      .q-card__section {
+        padding: 12px 16px !important;
+      }
     }
+  }
+}
+
+// Ajustar drawer en móviles para dar espacio al reproductor
+@media (max-width: 599px) {
+  .q-drawer {
+    padding-bottom: 10px;
   }
 }
 
@@ -599,6 +650,13 @@ export default {
       currentTime: 0,
       duration: 0,
       autoplayHandler: null,
+      currentSongIndex: 0,
+      playlist: [
+        { title: "Last Christmas", src: "/last_christmas_sound.mp3" },
+        { title: "All I Want for Christmas", src: "/all_i_want.mp3" },
+        { title: "Jingle Bells", src: "/jingle_bells.mp3" },
+        { title: "Feliz Navidad", src: "/feliz_navidad.mp3" },
+      ],
     };
   },
   watch: {
@@ -882,10 +940,44 @@ export default {
       const secs = Math.floor(seconds % 60);
       return `${mins}:${secs.toString().padStart(2, "0")}`;
     },
+
+    nextSong() {
+      this.currentSongIndex =
+        (this.currentSongIndex + 1) % this.playlist.length;
+      this.playSongAfterChange();
+    },
+
+    prevSong() {
+      this.currentSongIndex =
+        (this.currentSongIndex - 1 + this.playlist.length) %
+        this.playlist.length;
+      this.playSongAfterChange();
+    },
+
+    playSongAfterChange() {
+      const audio = this.$refs.christmasAudio;
+      if (!audio) return;
+
+      // Esperar a que el src cambie y reproducir
+      this.$nextTick(() => {
+        audio.load();
+        if (this.isPlaying || !audio.paused) {
+          audio.muted = false;
+          audio.volume = this.musicVolume / 100;
+          audio.play().catch((error) => {
+            console.log("Error al reproducir siguiente canción:", error);
+          });
+          this.isPlaying = true;
+        }
+      });
+    },
   },
   computed: {
     loggedInUser() {
       return this.user;
+    },
+    currentSong() {
+      return this.playlist[this.currentSongIndex] || this.playlist[0];
     },
   },
   setup() {
