@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    {
+      "source": "/serv-ma-v2/(.*)",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/serv-ma-v2(.*)",
+      "destination": "/",
+      "permanent": true
+    }
+  ]
+}

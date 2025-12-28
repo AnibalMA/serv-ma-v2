@@ -4,6 +4,7 @@ import { useUserStore } from "stores/user";
 import { useServerStatus } from "../servicios/composables/useServerStatus";
 import { serviceHttp } from "../../utils/serviceHttp";
 import { computed } from "vue";
+import ChristmasSnow from "src/components/ChristmasSnow.vue";
 
 export default {
   data() {
@@ -15,6 +16,9 @@ export default {
     };
   },
   methods,
+  components: {
+    ChristmasSnow,
+  },
   setup() {
     const userStore = useUserStore();
     const { serverStatus, isCheckingStatus, statusError, checkServerStatus } =
@@ -66,7 +70,7 @@ export default {
       this.isWakingUpBackend = true;
       try {
         // Hacer un ping silencioso al backend para que se levante
-        await serviceHttp.get("/health/ping");
+        // await serviceHttp.get("/health/ping");
         console.log("Backend despertado correctamente");
       } catch (error) {
         // No mostrar error al usuario, es solo un ping silencioso

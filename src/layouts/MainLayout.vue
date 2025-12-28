@@ -1,5 +1,22 @@
 <template>
   <div>
+    <!-- Efecto de nieve navideña -->
+    <ChristmasSnow />
+
+    <!-- Música navideña de fondo -->
+    <audio
+      ref="christmasAudio"
+      autoplay
+      loop
+      preload="auto"
+      muted
+      @timeupdate="updateTime"
+      @loadedmetadata="updateDuration"
+    >
+      <source src="/last_christmas_sound.mp3" type="audio/mpeg" />
+      Tu navegador no soporta el elemento de audio.
+    </audio>
+
     <q-layout
       view="lHh Lpr lff"
       :container="true"
@@ -8,7 +25,18 @@
     >
       <q-header :elevated="true" class="bg-cyan-8">
         <q-toolbar>
-          <q-toolbar-title>Serv-MA</q-toolbar-title>
+          <q-toolbar-title style="display: flex; align-items: center">
+            <img
+              :src="images.christmasLogo"
+              alt="Serv-MA"
+              style="
+                height: 22px;
+                width: auto;
+                max-width: none;
+                object-fit: contain;
+              "
+            />
+          </q-toolbar-title>
           <q-space />
           <div :hidden="$q.screen.xs">
             Bienvenido, {{ loggedInUser.nom_usuario }}
@@ -311,6 +339,71 @@
         </q-scroll-area>
       </q-page-container>
     </q-layout>
+
+    <!-- Controles flotantes de música navideña -->
+    <div class="music-controls-floating">
+      <q-card
+        class="music-card"
+        :class="$q.dark.isActive ? 'bg-dark' : 'bg-white'"
+      >
+        <q-card-section class="q-pa-md">
+          <div class="row items-center justify-between no-wrap">
+            <!-- Icono y controles principales -->
+            <div class="row items-center q-gutter-sm">
+              <q-icon name="music_note" color="red" size="md" />
+              <q-btn
+                round
+                dense
+                :icon="isPlaying ? 'pause' : 'play_arrow'"
+                color="red"
+                size="md"
+                @click="togglePlay"
+              >
+                <q-tooltip class="bg-red">{{
+                  isPlaying ? "Pausar" : "Reproducir"
+                }}</q-tooltip>
+              </q-btn>
+              <q-btn
+                round
+                dense
+                :icon="isMuted ? 'volume_off' : 'volume_up'"
+                color="red"
+                size="md"
+                @click="toggleMute"
+              >
+                <q-tooltip class="bg-red">{{
+                  isMuted ? "Silenciar" : "Activar"
+                }}</q-tooltip>
+              </q-btn>
+            </div>
+
+            <!-- Slider de volumen y tiempo -->
+            <div
+              class="column q-ml-md"
+              style="min-width: 120px; flex: 1; max-width: 180px"
+            >
+              <q-slider
+                v-model="musicVolume"
+                :min="0"
+                :max="100"
+                @update:model-value="updateVolume"
+                color="red"
+                :disable="isMuted"
+                dense
+              >
+                <q-tooltip class="bg-red">{{ musicVolume }}%</q-tooltip>
+              </q-slider>
+              <div
+                class="text-caption text-center"
+                style="margin-top: -4px; font-size: 10px"
+              >
+                {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+    </div>
   </div>
 </template>
 <style lang="scss">
@@ -419,6 +512,48 @@
 ::-webkit-scrollbar-thumb {
   border-radius: 4px;
 }
+
+// Controles flotantes de música
+.music-controls-floating {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+
+  .music-card {
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+    border-radius: 0;
+    border-top: 2px solid #f44336;
+    margin: 0;
+  }
+
+  // Desktop: flotante a la derecha
+  @media (min-width: 600px) {
+    bottom: 20px;
+    left: auto;
+    right: 20px;
+    width: auto;
+
+    .music-card {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      border: 2px solid #f44336;
+    }
+  }
+}
+
+.body--dark {
+  .music-controls-floating {
+    .music-card {
+      box-shadow: 0 -4px 12px rgba(255, 255, 255, 0.2);
+
+      @media (min-width: 600px) {
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+      }
+    }
+  }
+}
 </style>
 <script>
 // import { ref, computed } from 'vue'
@@ -429,8 +564,10 @@ import { Dark } from "quasar";
 // import { serviceHttp } from "src/utils/serviceHttp";
 import boyImage from "src/assets/boy-avatar.png";
 import girlImage from "src/assets/girl-avatar.png";
+import christmasLogo from "src/assets/logo-christmas.png";
 import { io } from "socket.io-client";
 import { serviceHttp } from "src/utils/serviceHttp";
+import ChristmasSnow from "src/components/ChristmasSnow.vue";
 export default {
   data() {
     return {
@@ -440,6 +577,7 @@ export default {
       images: {
         boyImage,
         girlImage,
+        christmasLogo,
       },
       menuList: useUserStore().getRols() || [
         {
@@ -454,6 +592,13 @@ export default {
       unreadCount: 0,
       showNotifications: false,
       showNotificationsDialog: false,
+      // Controles de música
+      isPlaying: false,
+      isMuted: false,
+      musicVolume: 20, // Volumen inicial al 20%
+      currentTime: 0,
+      duration: 0,
+      autoplayHandler: null,
     };
   },
   watch: {
@@ -495,12 +640,12 @@ export default {
       // Actualizar el valor de activateDark para mantener sincronizado el toggle
       this.activateDark = Dark.isActive;
 
-      useUserStore().setTheme(Dark.isActive? "dark" : "light");
+      useUserStore().setTheme(Dark.isActive ? "dark" : "light");
     },
     async updateThemePreference() {
       try {
         await serviceHttp.post("/change_theme", {
-          theme: Dark.isActive ? "dark" : "light"
+          theme: Dark.isActive ? "dark" : "light",
         });
         console.log("Preferencia de tema actualizada en la base de datos");
       } catch (error) {
@@ -509,7 +654,7 @@ export default {
         this.$q.notify({
           type: "negative",
           message: "No se pudo guardar la preferencia de tema",
-          timeout: 2000
+          timeout: 2000,
         });
       }
     },
@@ -642,6 +787,101 @@ export default {
         timeout: 5000,
       });
     },
+
+    setupAutoplayOnInteraction() {
+      // Crear handler que se puede remover después
+      this.autoplayHandler = () => {
+        const audio = this.$refs.christmasAudio;
+        if (audio && audio.paused) {
+          // Desmutear y reproducir
+          audio.muted = false;
+          audio.volume = this.musicVolume / 100;
+
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                this.isPlaying = true;
+                console.log("🎵 Música iniciada tras interacción");
+                // Remover listeners una vez que funcione
+                document.removeEventListener("click", this.autoplayHandler);
+                document.removeEventListener(
+                  "touchstart",
+                  this.autoplayHandler
+                );
+                document.removeEventListener("keydown", this.autoplayHandler);
+              })
+              .catch((error) => {
+                console.log("Error al reproducir:", error);
+              });
+          }
+        }
+      };
+
+      // Agregar listeners para múltiples tipos de interacción
+      document.addEventListener("click", this.autoplayHandler);
+      document.addEventListener("touchstart", this.autoplayHandler);
+      document.addEventListener("keydown", this.autoplayHandler);
+    },
+
+    togglePlay() {
+      const audio = this.$refs.christmasAudio;
+      if (!audio) return;
+
+      if (this.isPlaying) {
+        audio.pause();
+        this.isPlaying = false;
+      } else {
+        // Asegurarse de que no esté muteado
+        audio.muted = false;
+        audio.volume = this.musicVolume / 100;
+
+        audio
+          .play()
+          .then(() => {
+            this.isPlaying = true;
+            // Remover listeners si existen
+            if (this.autoplayHandler) {
+              document.removeEventListener("click", this.autoplayHandler);
+              document.removeEventListener("touchstart", this.autoplayHandler);
+              document.removeEventListener("keydown", this.autoplayHandler);
+            }
+          })
+          .catch((error) => {
+            console.log("Error al reproducir:", error);
+          });
+      }
+    },
+
+    toggleMute() {
+      const audio = this.$refs.christmasAudio;
+      if (!audio) return;
+
+      this.isMuted = !this.isMuted;
+      audio.muted = this.isMuted;
+    },
+
+    updateVolume(value) {
+      const audio = this.$refs.christmasAudio;
+      if (!audio) return;
+
+      audio.volume = value / 100;
+    },
+
+    updateTime(event) {
+      this.currentTime = event.target.currentTime;
+    },
+
+    updateDuration(event) {
+      this.duration = event.target.duration;
+    },
+
+    formatTime(seconds) {
+      if (!seconds || isNaN(seconds)) return "0:00";
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, "0")}`;
+    },
   },
   computed: {
     loggedInUser() {
@@ -670,16 +910,46 @@ export default {
   async mounted() {
     await this.loadNotifications();
     this.connectSocket();
+
+    // Configurar el audio para autoplay
+    this.$nextTick(() => {
+      const audio = this.$refs.christmasAudio;
+      if (audio) {
+        // Establecer volumen
+        audio.volume = this.musicVolume / 100;
+
+        // Intentar desmutear después de un pequeño delay
+        setTimeout(() => {
+          audio.muted = false;
+          this.isPlaying = !audio.paused;
+
+          // Si no está reproduciéndose, configurar autoplay en interacción
+          if (audio.paused) {
+            this.setupAutoplayOnInteraction();
+          }
+        }, 100);
+      }
+    });
   },
   beforeUnmount() {
     if (this.socket) {
       this.socket.disconnect();
     }
+
+    // Limpiar listeners de autoplay
+    if (this.autoplayHandler) {
+      document.removeEventListener("click", this.autoplayHandler);
+      document.removeEventListener("touchstart", this.autoplayHandler);
+      document.removeEventListener("keydown", this.autoplayHandler);
+    }
   },
   created() {
     // Inicializar el tema basado en la preferencia guardada
     const savedTheme = useUserStore().getTheme();
-    Dark.set(savedTheme === 'dark');
-  }
+    Dark.set(savedTheme === "dark");
+  },
+  components: {
+    ChristmasSnow,
+  },
 };
 </script>

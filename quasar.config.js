@@ -65,7 +65,7 @@ module.exports = configure(function (ctx) {
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
-      publicPath: "/serv-ma-v2",
+      publicPath: "/",
       // analyze: true,
       env: require("dotenv").config({ path: sPathEnv }).parsed,
       // rawDefine: {}
