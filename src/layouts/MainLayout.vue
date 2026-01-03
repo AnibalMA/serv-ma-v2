@@ -1,10 +1,10 @@
 <template>
   <div>
     <!-- Efecto de nieve navideña -->
-    <ChristmasSnow />
+    <!-- <ChristmasSnow /> -->
 
     <!-- Música navideña de fondo -->
-    <audio
+    <!-- <audio
       ref="christmasAudio"
       autoplay
       preload="auto"
@@ -15,7 +15,7 @@
       @ended="nextSong"
     >
       Tu navegador no soporta el elemento de audio.
-    </audio>
+    </audio> -->
 
     <q-layout
       view="lHh Lpr lff"
@@ -27,10 +27,10 @@
         <q-toolbar>
           <q-toolbar-title style="display: flex; align-items: center">
             <img
-              :src="images.christmasLogo"
+              :src="images.logoMA"
               alt="Serv-MA"
               style="
-                height: 22px;
+                height: 50px;
                 width: auto;
                 max-width: none;
                 object-fit: contain;
@@ -348,14 +348,13 @@
     </q-layout>
 
     <!-- Controles flotantes de música navideña -->
-    <div class="music-controls-floating">
+    <!-- <div class="music-controls-floating">
       <q-card
         class="music-card"
         :class="$q.dark.isActive ? 'bg-dark' : 'bg-white'"
       >
         <q-card-section class="q-pa-md">
           <div class="row items-center justify-between no-wrap">
-            <!-- Icono y controles principales -->
             <div class="row items-center q-gutter-xs">
               <q-icon name="music_note" color="red" size="md" />
               <q-btn
@@ -404,7 +403,6 @@
               </q-btn>
             </div>
 
-            <!-- Slider de volumen, nombre de canción y tiempo -->
             <div
               class="column q-ml-sm"
               style="min-width: 140px; flex: 1; max-width: 200px"
@@ -438,7 +436,7 @@
           </div>
         </q-card-section>
       </q-card>
-    </div>
+    </div> -->
   </div>
 </template>
 <style lang="scss">
@@ -548,7 +546,7 @@
   border-radius: 4px;
 }
 
-// Controles flotantes de música
+/* Controles flotantes de música - DESACTIVADO
 .music-controls-floating {
   position: fixed;
   bottom: 0;
@@ -605,6 +603,7 @@
     }
   }
 }
+*/
 </style>
 <script>
 // import { ref, computed } from 'vue'
@@ -616,9 +615,10 @@ import { Dark } from "quasar";
 import boyImage from "src/assets/boy-avatar.png";
 import girlImage from "src/assets/girl-avatar.png";
 import christmasLogo from "src/assets/logo-christmas.png";
+import logoMA from "src/assets/logo_serv-ma.png";
 import { io } from "socket.io-client";
 import { serviceHttp } from "src/utils/serviceHttp";
-import ChristmasSnow from "src/components/ChristmasSnow.vue";
+// import ChristmasSnow from "src/components/ChristmasSnow.vue";
 export default {
   data() {
     return {
@@ -628,7 +628,7 @@ export default {
       images: {
         boyImage,
         girlImage,
-        christmasLogo,
+        logoMA,
       },
       menuList: useUserStore().getRols() || [
         {
@@ -643,8 +643,8 @@ export default {
       unreadCount: 0,
       showNotifications: false,
       showNotificationsDialog: false,
-      // Controles de música
-      isPlaying: false,
+      // Controles de música navideña - DESACTIVADO
+      /* isPlaying: false,
       isMuted: false,
       musicVolume: 20, // Volumen inicial al 20%
       currentTime: 0,
@@ -656,7 +656,7 @@ export default {
         { title: "All I Want for Christmas", src: "/all_i_want.mp3" },
         { title: "Jingle Bells", src: "/jingle_bells.mp3" },
         { title: "Feliz Navidad", src: "/feliz_navidad.mp3" },
-      ],
+      ], */
     };
   },
   watch: {
@@ -846,6 +846,7 @@ export default {
       });
     },
 
+    /* MÉTODOS DE MÚSICA NAVIDEÑA - DESACTIVADO
     setupAutoplayOnInteraction() {
       // Crear handler que se puede remover después
       this.autoplayHandler = () => {
@@ -971,14 +972,15 @@ export default {
         }
       });
     },
+    FIN MÉTODOS DE MÚSICA NAVIDEÑA */
   },
   computed: {
     loggedInUser() {
       return this.user;
     },
-    currentSong() {
+    /* currentSong() {
       return this.playlist[this.currentSongIndex] || this.playlist[0];
-    },
+    }, */
   },
   setup() {
     return {
@@ -1003,7 +1005,7 @@ export default {
     await this.loadNotifications();
     this.connectSocket();
 
-    // Configurar el audio para autoplay
+    /* Configurar el audio para autoplay - DESACTIVADO
     this.$nextTick(() => {
       const audio = this.$refs.christmasAudio;
       if (audio) {
@@ -1021,27 +1023,27 @@ export default {
           }
         }, 100);
       }
-    });
+    }); */
   },
   beforeUnmount() {
     if (this.socket) {
       this.socket.disconnect();
     }
 
-    // Limpiar listeners de autoplay
+    /* Limpiar listeners de autoplay - DESACTIVADO
     if (this.autoplayHandler) {
       document.removeEventListener("click", this.autoplayHandler);
       document.removeEventListener("touchstart", this.autoplayHandler);
       document.removeEventListener("keydown", this.autoplayHandler);
-    }
+    } */
   },
   created() {
     // Inicializar el tema basado en la preferencia guardada
     const savedTheme = useUserStore().getTheme();
     Dark.set(savedTheme === "dark");
   },
-  components: {
+  /* components: {
     ChristmasSnow,
-  },
+  }, */
 };
 </script>

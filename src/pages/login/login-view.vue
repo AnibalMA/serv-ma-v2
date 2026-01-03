@@ -1,7 +1,7 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <!-- Efecto de nieve navideña -->
-    <ChristmasSnow />
+    <!-- <ChristmasSnow /> -->
 
     <q-page-container>
       <q-page class="flex flex-center bg-login">
