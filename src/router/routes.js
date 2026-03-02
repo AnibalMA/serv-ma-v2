@@ -52,6 +52,11 @@ const routes = [
         path: "servicios",
         component: () => import("pages/servicios/servicios-view.vue"),
       },
+      {
+        name: "dox",
+        path: "dox",
+        component: () => import("pages/dox/dox-view.vue"),
+      },
     ],
   },
   {
