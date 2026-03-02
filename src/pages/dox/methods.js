@@ -384,5 +384,4 @@ export default {
       .replace(/^./, (s) => s.toUpperCase())
       .trim();
   },
-
 };
