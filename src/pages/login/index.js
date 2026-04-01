@@ -10,7 +10,7 @@ export default {
   data() {
     return {
       ...data(),
-      showServerStatus: false,
+      showServerStatus: true,
       bannerDismissed: false,
       isWakingUpBackend: false,
     };
@@ -47,7 +47,8 @@ export default {
       return (
         !this.isFormValid ||
         !this.serverStatus.isOnline ||
-        this.serverStatus.isInMaintenance
+        this.serverStatus.isInMaintenance ||
+        true
       );
     },
   },

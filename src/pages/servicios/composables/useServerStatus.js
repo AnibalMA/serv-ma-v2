@@ -26,7 +26,7 @@ export function useServerStatus() {
   const checkServerStatus = async () => {
     isCheckingStatus.value = true;
     statusError.value = null;
-
+    let latestNews = null;
     try {
       // Llamar a la API de noticias (PHP en el mismo servidor)
       const response = await axios.get(NEWS_API_URL);
@@ -34,7 +34,7 @@ export function useServerStatus() {
       // Verificar si hay datos y obtener la primera noticia (la más reciente)
       const hasNews =
         response.data && response.data.data && response.data.data.length > 0;
-      const latestNews = hasNews ? response.data.data[0] : null;
+      latestNews = hasNews ? response.data.data[0] : null;
 
       serverStatus.value = {
         isOnline: latestNews ? latestNews.online : true,
@@ -47,18 +47,21 @@ export function useServerStatus() {
         version: DEFAULT_VERSION,
       };
     } catch (error) {
-      // En caso de error, usar valores por defecto
+      // Si no hay respuesta del backend, marcarlo como no disponible
       serverStatus.value = {
-        isOnline: true,
+        isOnline: false,
         isInMaintenance: false,
-        isWorking: true,
+        isWorking: false,
         maintenanceMessage: DEFAULT_MESSAGE,
-        showMessageTop: latestNews ? latestNews.showMessageTop : false,
+        showMessageTop: true,
         estimatedDowntime: null,
         serviceName: DEFAULT_SERVICE_NAME,
         version: DEFAULT_VERSION,
       };
-      statusError.value = error.message || "Error al obtener noticias";
+      statusError.value =
+        error?.response?.data?.message ||
+        error?.message ||
+        "No se pudo conectar con el servidor";
     } finally {
       isCheckingStatus.value = false;
     }

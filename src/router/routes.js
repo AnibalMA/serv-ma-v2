@@ -57,6 +57,44 @@ const routes = [
         path: "dox",
         component: () => import("pages/dox/dox-view.vue"),
       },
+      {
+        name: "admin-users",
+        path: "admin-users",
+        component: () => import("pages/admin-users/admin-users-view.vue"),
+        beforeEnter: (to, from, next) => {
+          const oUser = useUserStore().getUser();
+          if (oUser.sToken && ["ROL_ADM", "ROL_ADM_SU"].includes(oUser.rol)) {
+            next();
+          } else {
+            Notify.create({
+              color: "red-8",
+              textColor: "white",
+              icon: "block",
+              message: "Acceso restringido: Solo administradores",
+            });
+            next("/dashboard");
+          }
+        },
+      },
+      {
+        name: "admin-tickets",
+        path: "admin-tickets",
+        component: () => import("pages/admin-tickets/admin-tickets-view.vue"),
+        beforeEnter: (to, from, next) => {
+          const oUser = useUserStore().getUser();
+          if (oUser.sToken && ["ROL_ADM", "ROL_ADM_SU"].includes(oUser.rol)) {
+            next();
+          } else {
+            Notify.create({
+              color: "red-8",
+              textColor: "white",
+              icon: "block",
+              message: "Acceso restringido: Solo administradores",
+            });
+            next("/dashboard");
+          }
+        },
+      },
     ],
   },
   {
