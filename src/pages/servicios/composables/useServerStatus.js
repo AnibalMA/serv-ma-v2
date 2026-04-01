@@ -7,8 +7,12 @@ const DEFAULT_MESSAGE =
 const DEFAULT_SERVICE_NAME = "ServMA News";
 const DEFAULT_VERSION = "1.0.0";
 
-// URL de la API de noticias (mismo servidor que el frontend)
-const NEWS_API_URL = "/serv-ma-api/api/news";
+// No usar /serv-ma-api/api/news porque está caído.
+// Usamos health check del backend principal configurado en API_BACKEND.
+const backendBaseUrl = (process.env.API_BACKEND || "").replace(/\/$/, "");
+const HEALTH_CHECK_URL = backendBaseUrl
+  ? `${backendBaseUrl}/health/ping`
+  : "/health/ping";
 
 export function useServerStatus() {
   const serverStatus = ref({
@@ -26,24 +30,17 @@ export function useServerStatus() {
   const checkServerStatus = async () => {
     isCheckingStatus.value = true;
     statusError.value = null;
-    let latestNews = null;
     try {
-      // Llamar a la API de noticias (PHP en el mismo servidor)
-      const response = await axios.get(NEWS_API_URL);
-
-      // Verificar si hay datos y obtener la primera noticia (la más reciente)
-      const hasNews =
-        response.data && response.data.data && response.data.data.length > 0;
-      latestNews = hasNews ? response.data.data[0] : null;
+      await axios.get(HEALTH_CHECK_URL);
 
       serverStatus.value = {
-        isOnline: latestNews ? latestNews.online : true,
-        isInMaintenance: latestNews ? latestNews.maintenance : false,
-        maintenanceMessage: latestNews ? latestNews.contenido : DEFAULT_MESSAGE,
-        isWorking: latestNews ? latestNews.working : true,
-        showMessageTop: latestNews ? latestNews.showMessageTop : false,
-        estimatedDowntime: latestNews ? latestNews.estimatedDowntime : null,
-        serviceName: latestNews ? latestNews.titulo : DEFAULT_SERVICE_NAME,
+        isOnline: true,
+        isInMaintenance: false,
+        maintenanceMessage: "",
+        isWorking: true,
+        showMessageTop: false,
+        estimatedDowntime: null,
+        serviceName: DEFAULT_SERVICE_NAME,
         version: DEFAULT_VERSION,
       };
     } catch (error) {

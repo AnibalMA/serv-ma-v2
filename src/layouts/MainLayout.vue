@@ -621,6 +621,13 @@ import { serviceHttp } from "src/utils/serviceHttp";
 // import ChristmasSnow from "src/components/ChristmasSnow.vue";
 export default {
   data() {
+    const hiddenTemporaryRoutes = ["/boletas", "/dox"];
+    const roleMenu = useUserStore().getRols() || [];
+    const filteredMenu = roleMenu.filter((item) => {
+      if (!item || !item.route) return true;
+      return !hiddenTemporaryRoutes.includes(item.route);
+    });
+
     return {
       activateDark: useUserStore().getTheme() === "dark" ? true : false,
       user: useUserStore().getUser(),
@@ -630,7 +637,9 @@ export default {
         girlImage,
         logoMA,
       },
-      menuList: useUserStore().getRols() || [
+      menuList: filteredMenu.length
+        ? filteredMenu
+        : [
         {
           icon: "power_settings_new",
           label: "Cerrar sesión",

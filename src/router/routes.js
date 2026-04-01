@@ -1,5 +1,16 @@
 import { useUserStore } from "src/stores/user";
 import { Notify } from "quasar";
+
+const blockTemporaryAccess = (featureName) => (to, from, next) => {
+  Notify.create({
+    color: "orange-9",
+    textColor: "white",
+    icon: "warning",
+    message: `${featureName} se encuentra temporalmente deshabilitado`,
+  });
+  next("/dashboard");
+};
+
 const routes = [
   {
     path: "/",
@@ -36,6 +47,7 @@ const routes = [
         name: "boletas",
         path: "boletas",
         component: () => import("pages/boletas/boletas-view.vue"),
+        beforeEnter: blockTemporaryAccess("Boletas"),
       },
       {
         name: "boletas_gen",
@@ -56,6 +68,7 @@ const routes = [
         name: "dox",
         path: "dox",
         component: () => import("pages/dox/dox-view.vue"),
+        beforeEnter: blockTemporaryAccess("Consultas Dox"),
       },
       {
         name: "admin-users",

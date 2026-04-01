@@ -47,8 +47,7 @@ export default {
       return (
         !this.isFormValid ||
         !this.serverStatus.isOnline ||
-        this.serverStatus.isInMaintenance ||
-        true
+        this.serverStatus.isInMaintenance
       );
     },
   },
