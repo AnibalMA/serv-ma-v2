@@ -1,7 +1,7 @@
 <template>
-  <q-page class="q-px-sm">
+  <q-page class="q-px-sm admin-tickets-page">
     <!-- Header -->
-    <div class="row items-center justify-between q-mb-md q-ma-sm">
+    <div class="row items-start justify-between q-mb-md q-ma-sm admin-header">
       <div>
         <h4 class="text-h4 q-my-none">🎫 Gestión de Tickets</h4>
         <p class="text-grey-6 q-mb-none">
@@ -9,7 +9,7 @@
           etc.
         </p>
       </div>
-      <div class="row q-gutter-sm">
+      <div class="row q-gutter-sm admin-actions">
         <q-btn
           color="primary"
           icon="add"
@@ -51,7 +51,7 @@
     <!-- Historial de acciones -->
     <q-card flat bordered>
       <q-card-section class="bg-grey-2 q-py-sm">
-        <div class="row items-center justify-between">
+        <div class="row items-center justify-between history-header">
           <div class="text-subtitle1 text-weight-medium">
             <q-icon name="history" class="q-mr-sm" />
             Historial de Acciones
@@ -61,7 +61,7 @@
             dense
             outlined
             placeholder="Buscar..."
-            style="max-width: 250px"
+            class="history-search"
           >
             <template v-slot:prepend>
               <q-icon name="search" />
@@ -77,7 +77,59 @@
         row-key="id"
         flat
         :pagination="{ rowsPerPage: 10 }"
+        class="admin-tickets-table"
+        :grid="$q.screen.lt.md"
+        :hide-header="$q.screen.lt.md"
       >
+        <template v-slot:item="props">
+          <div class="col-12">
+            <q-card flat bordered class="q-pa-sm q-mb-sm">
+              <div class="row items-center justify-between q-col-gutter-sm">
+                <div class="col">
+                  <q-chip
+                    :icon="getTicketTypeIcon(props.row.tipo)"
+                    :color="getTicketTypeColor(props.row.tipo)"
+                    text-color="white"
+                    :label="props.row.tipo"
+                    size="sm"
+                    dense
+                  />
+                </div>
+                <div class="col-auto">
+                  <q-badge
+                    :color="props.row.estado === 'Completado' ? 'green' : 'red'"
+                    :label="props.row.estado"
+                  />
+                </div>
+              </div>
+
+              <div class="text-subtitle2 text-weight-medium ellipsis q-mt-sm">
+                {{ props.row.usuario }}
+              </div>
+              <div class="text-caption text-grey-7 q-mt-xs">
+                {{ formatDate(props.row.fecha) }}
+              </div>
+              <div class="text-body2 q-mt-xs ellipsis-2-lines">
+                {{ props.row.descripcion || "Sin descripción" }}
+              </div>
+
+              <div class="row justify-end q-mt-sm">
+                <q-btn
+                  flat
+                  dense
+                  icon="visibility"
+                  color="info"
+                  label="Ver"
+                  @click="
+                    selectedTicket = props.row;
+                    showDetailDialog = true;
+                  "
+                />
+              </div>
+            </q-card>
+          </div>
+        </template>
+
         <template v-slot:body-cell-tipo="props">
           <q-td :props="props">
             <q-chip
@@ -135,7 +187,7 @@
 
     <!-- Dialog crear ticket / acción -->
     <q-dialog v-model="showCreateDialog" persistent>
-      <q-card style="min-width: 500px; max-width: 600px">
+      <q-card class="dialog-card dialog-card--md">
         <q-card-section class="bg-cyan-8 text-white">
           <div class="text-h6">
             <q-icon name="add_task" class="q-mr-sm" />
@@ -263,6 +315,23 @@
               mask="######"
               :rules="[(v) => !!v || 'Ingrese el nuevo PIN']"
             />
+
+            <!-- Día de pago -->
+            <q-input
+              v-if="
+                (ticketForm.tipo.value || ticketForm.tipo) === 'CAMBIAR_PAYDAY'
+              "
+              v-model.number="ticketForm.dia_pago"
+              label="Nuevo día de pago (1-31)"
+              outlined
+              dense
+              type="number"
+              min="1"
+              max="31"
+              :rules="[
+                (v) => (v >= 1 && v <= 31) || 'Ingrese un día válido (1-31)',
+              ]"
+            />
           </template>
 
           <!-- Descripción -->
@@ -292,7 +361,7 @@
 
     <!-- Dialog detalle de acción -->
     <q-dialog v-model="showDetailDialog">
-      <q-card style="min-width: 400px" v-if="selectedTicket">
+      <q-card class="dialog-card dialog-card--sm" v-if="selectedTicket">
         <q-card-section class="bg-cyan-8 text-white">
           <div class="text-h6">
             <q-icon name="info" class="q-mr-sm" />
@@ -377,7 +446,7 @@
 
     <!-- Dialog confirmación -->
     <q-dialog v-model="showConfirmDialog" persistent>
-      <q-card style="min-width: 350px">
+      <q-card class="dialog-card dialog-card--xs">
         <q-card-section class="bg-orange text-white">
           <div class="text-h6">
             <q-icon name="warning" class="q-mr-sm" />
@@ -419,7 +488,12 @@ export default {
     },
     needsServiceSelector() {
       const tipo = this.ticketForm.tipo?.value || this.ticketForm.tipo;
-      return ["CAMBIAR_PIN", "CAMBIAR_PERFIL", "BAJA_SERVICIO"].includes(tipo);
+      return [
+        "CAMBIAR_PIN",
+        "CAMBIAR_PERFIL",
+        "BAJA_SERVICIO",
+        "CAMBIAR_PAYDAY",
+      ].includes(tipo);
     },
   },
   methods: {
@@ -434,6 +508,7 @@ export default {
         id_usuario_servicio: null,
         desc_perfil: "",
         nuevo_pin: "",
+        dia_pago: null,
       };
       this.userOptions = [];
       this.userServices = [];
@@ -443,3 +518,69 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.admin-header {
+  gap: 12px;
+}
+
+.admin-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.history-header {
+  gap: 10px;
+}
+
+.history-search {
+  width: 250px;
+}
+
+.dialog-card {
+  width: 92vw;
+  max-width: 640px;
+}
+
+.dialog-card--md {
+  max-width: 600px;
+}
+
+.dialog-card--sm {
+  max-width: 440px;
+}
+
+.dialog-card--xs {
+  max-width: 380px;
+}
+
+@media (max-width: 1023px) {
+  .admin-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .history-search {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 599px) {
+  .admin-tickets-page .text-h4 {
+    font-size: 1.4rem;
+    line-height: 1.2;
+  }
+
+  .admin-actions .q-btn {
+    flex: 1 1 calc(50% - 8px);
+  }
+
+  .admin-actions .q-btn.q-btn--round {
+    flex: 0 0 auto;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+  }
+}
+</style>

@@ -621,7 +621,7 @@ import { serviceHttp } from "src/utils/serviceHttp";
 // import ChristmasSnow from "src/components/ChristmasSnow.vue";
 export default {
   data() {
-    const hiddenTemporaryRoutes = ["/boletas", "/dox"];
+    const hiddenTemporaryRoutes = ["/dox"];
     const roleMenu = useUserStore().getRols() || [];
     const filteredMenu = roleMenu.filter((item) => {
       if (!item || !item.route) return true;
@@ -640,12 +640,12 @@ export default {
       menuList: filteredMenu.length
         ? filteredMenu
         : [
-        {
-          icon: "power_settings_new",
-          label: "Cerrar sesión",
-          separator: true,
-        },
-      ],
+            {
+              icon: "power_settings_new",
+              label: "Cerrar sesión",
+              separator: true,
+            },
+          ],
       isLoading: false,
       notifications: [],
       socket: null,

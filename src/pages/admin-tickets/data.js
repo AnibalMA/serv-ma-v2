@@ -61,6 +61,7 @@ export default function () {
       id_usuario_servicio: null,
       desc_perfil: "",
       nuevo_pin: "",
+      dia_pago: null,
     },
     // Para servicios del usuario seleccionado
     userServices: [],

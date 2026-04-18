@@ -56,6 +56,7 @@ export default {
       id_usuario_servicio: null,
       desc_perfil: "",
       nuevo_pin: "",
+      dia_pago: null,
     };
     this.userOptions = [];
     this.userServices = [];
@@ -103,9 +104,12 @@ export default {
     }
     // Cargar servicios del usuario si se necesitan
     if (
-      ["CAMBIAR_PIN", "CAMBIAR_PERFIL", "BAJA_SERVICIO"].includes(
-        this.ticketForm.tipo?.value
-      )
+      [
+        "CAMBIAR_PIN",
+        "CAMBIAR_PERFIL",
+        "BAJA_SERVICIO",
+        "CAMBIAR_PAYDAY",
+      ].includes(this.ticketForm.tipo?.value)
     ) {
       await this.loadUserServices(user);
     }
@@ -115,13 +119,15 @@ export default {
     this.loadingServices = true;
     try {
       const { data } = await serviceHttp.get(
-        `/user_plataformas/${user.value || user.id}`
+        `/user_servicios/${user.value || user.id}`
       );
       if (data?.ok) {
         this.userServices = (data.data || []).map((s) => ({
           ...s,
-          label: `${s.desc_plataforma} - ${s.desc_perfil || "Sin perfil"}`,
-          value: s.id,
+          label: `${
+            s.desc_plataforma || s.DescPlataforma || s.Plataforma || "Servicio"
+          } - ${s.desc_perfil || s.DescPerfil || "Sin perfil"}`,
+          value: s.id_usuario_servicio || s.IdUsuarioServicio || s.id || s.Id,
         }));
       }
     } catch (error) {
@@ -200,7 +206,7 @@ export default {
               this.selectedService.value || this.selectedService.id,
             desc_perfil:
               this.ticketForm.desc_perfil || this.selectedService.desc_perfil,
-            pin: this.ticketForm.nuevo_pin,
+            PIN: this.ticketForm.nuevo_pin,
           });
           break;
 
@@ -226,9 +232,18 @@ export default {
           break;
 
         case "CAMBIAR_PAYDAY":
+          if (!this.selectedService) {
+            throw new Error("Seleccione un servicio");
+          }
           result = await serviceHttp.post("/change-payday", {
-            id_usuario: usuario.value || usuario.id,
-            descripcion: this.ticketForm.descripcion,
+            id_usuario_servicio:
+              this.selectedService.value || this.selectedService.id,
+            id_plataforma:
+              this.selectedService.IdPlataforma ||
+              this.selectedService.id_plataforma,
+            id_grupo:
+              this.selectedService.IdGrupo || this.selectedService.id_grupo,
+            dia_pago: this.ticketForm.dia_pago,
           });
           break;
 

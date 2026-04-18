@@ -8,6 +8,7 @@ export default {
   created() {
     if (this.checkAdminAccess()) {
       this.getUsers();
+      this.loadMasterData();
     }
   },
   setup() {

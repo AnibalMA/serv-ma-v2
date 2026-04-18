@@ -10,7 +10,7 @@ export default {
   data() {
     return {
       ...data(),
-      showServerStatus: true,
+      showServerStatus: false,
       bannerDismissed: false,
       isWakingUpBackend: false,
     };
@@ -55,10 +55,11 @@ export default {
     // Verificar el estado del servidor al cargar la página
     await this.checkServerStatus();
 
-    // Si hay problemas de conectividad o mantenimiento, mostrar el estado
-    if (!this.serverStatus.isOnline || this.serverStatus.isInMaintenance) {
-      this.showServerStatus = true;
-    }
+    // Mostrar banner solo cuando hay incidencia o mensaje operativo explícito
+    this.showServerStatus =
+      !this.serverStatus.isOnline ||
+      this.serverStatus.isInMaintenance ||
+      this.serverStatus.showMessageTop;
 
     // Hacer ping al backend para "despertarlo" (cold start)
     this.wakeUpBackend();
