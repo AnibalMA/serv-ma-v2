@@ -1,8 +1,6 @@
 // src/pages/dox/methods.js
 import { serviceHttp } from "../../utils/serviceHttp";
 import axios from "axios";
-import { LocalStorage } from "quasar";
-import { useUserStore } from "src/stores/user";
 
 export default {
   /**
@@ -160,6 +158,14 @@ export default {
     this.isExecuting = true;
     this.result = null;
     this.resultError = null;
+    this.queueWait = false;
+
+    // Mostrar mensaje de espera si la cola está ocupada
+    this.queueTimer = setTimeout(() => {
+      if (this.isExecuting) {
+        this.queueWait = true;
+      }
+    }, 5000);
 
     try {
       let response;
@@ -186,16 +192,11 @@ export default {
         }
 
         // Usar axios directo para multipart (no poner Content-Type, el browser lo pone con boundary)
-        const oUser = LocalStorage.getItem("-oUI");
-        const token = oUser ? useUserStore().getUser().sToken : null;
-
         response = await axios.post(
           `${process.env.API_BACKEND}dox/execute`,
           formData,
           {
-            headers: {
-              Authorization: token ? `Bearer ${token}` : undefined,
-            },
+            withCredentials: true,
             timeout: 180000,
           }
         );
@@ -256,6 +257,11 @@ export default {
       });
     } finally {
       this.isExecuting = false;
+      this.queueWait = false;
+      if (this.queueTimer) {
+        clearTimeout(this.queueTimer);
+        this.queueTimer = null;
+      }
     }
   },
 

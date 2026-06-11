@@ -18,6 +18,8 @@ export default function () {
 
     // Ejecución
     isExecuting: false,
+    queueWait: false,
+    queueTimer: null,
 
     // Resultado
     result: null,

@@ -3,36 +3,16 @@ import { LocalStorage } from "quasar";
 import { useUserStore } from "src/stores/user";
 import { Notify } from "quasar";
 import { Loading } from "quasar";
-// import router from 'src/router';
 
 const axios_servma = axios.create({
   baseURL: process.env.API_BACKEND,
-  timeout: 180000, // 3 minutos en milisegundos
+  timeout: 180000,
+  withCredentials: true,
 });
 const axios_servma_b = axios.create({
   baseURL: process.env.API_BACKEND_B,
-  timeout: 180000, // 3 minutos en milisegundos
+  timeout: 180000,
 });
-const getHeaders = () => {
-  const oUser = LocalStorage.getItem("-oUI");
-  const oHeaders = {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  };
-  if (oUser) {
-    oHeaders.Authorization = `Bearer ${useUserStore().getUser().sToken}`;
-  }
-  return oHeaders;
-};
-axios_servma.interceptors.request.use(
-  (config) => {
-    config.headers = getHeaders() || {};
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 const verify_token = (response) => {
   if (response.request.status === 401) {
     LocalStorage.clear();

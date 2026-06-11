@@ -696,7 +696,10 @@ export default {
           break;
       }
     },
-    logout: function () {
+    logout: async function () {
+      try {
+        await serviceHttp.post("/logout");
+      } catch (e) { /* ignore */ }
       useUserStore().logout();
       this.$router.replace("/login");
     },

@@ -240,6 +240,15 @@
           </q-tooltip>
         </q-btn>
       </div>
+      <!-- Indicador de alta demanda -->
+      <div class="col-12 q-mt-sm" v-if="queueWait">
+        <q-banner class="bg-warning text-black rounded-borders">
+          <template v-slot:avatar>
+            <q-icon name="hourglass_top" />
+          </template>
+          Alta demanda: hay consultas en espera. Tu solicitud se está procesando...
+        </q-banner>
+      </div>
     </div>
 
     <!-- Resultado -->

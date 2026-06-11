@@ -19,7 +19,7 @@ const routes = [
       // console.log('to', to);
       // console.log('from', from);
       const oUser = useUserStore().getUser();
-      if (oUser.sToken) {
+      if (oUser?.id) {
         if (to.path === "/") {
           next("/dashboard");
         } else {
@@ -67,7 +67,6 @@ const routes = [
         name: "dox",
         path: "dox",
         component: () => import("pages/dox/dox-view.vue"),
-        beforeEnter: blockTemporaryAccess("Consultas Dox"),
       },
       {
         name: "admin-users",
@@ -75,7 +74,7 @@ const routes = [
         component: () => import("pages/admin-users/admin-users-view.vue"),
         beforeEnter: (to, from, next) => {
           const oUser = useUserStore().getUser();
-          if (oUser.sToken && ["ROL_ADM", "ROL_ADM_SU"].includes(oUser.rol)) {
+          if (oUser?.id && ["ROL_ADM", "ROL_ADM_SU"].includes(oUser.rol)) {
             next();
           } else {
             Notify.create({
@@ -94,7 +93,7 @@ const routes = [
         component: () => import("pages/admin-tickets/admin-tickets-view.vue"),
         beforeEnter: (to, from, next) => {
           const oUser = useUserStore().getUser();
-          if (oUser.sToken && ["ROL_ADM", "ROL_ADM_SU"].includes(oUser.rol)) {
+          if (oUser?.id && ["ROL_ADM", "ROL_ADM_SU"].includes(oUser.rol)) {
             next();
           } else {
             Notify.create({
@@ -113,7 +112,7 @@ const routes = [
         component: () => import("pages/admin-payments/admin-payments-view.vue"),
         beforeEnter: (to, from, next) => {
           const oUser = useUserStore().getUser();
-          if (oUser.sToken && ["ROL_ADM", "ROL_ADM_SU"].includes(oUser.rol)) {
+          if (oUser?.id && ["ROL_ADM", "ROL_ADM_SU"].includes(oUser.rol)) {
             next();
           } else {
             Notify.create({
@@ -133,7 +132,7 @@ const routes = [
     name: "login",
     beforeEnter: (to, from, next) => {
       const oUser = useUserStore().getUser();
-      if (oUser.sToken) {
+      if (oUser?.id) {
         next("/dashboard");
       } else {
         next();

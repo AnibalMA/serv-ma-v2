@@ -46,8 +46,6 @@ export default {
         console.log(error);
         this.$q.loading.hide();
       });
-
-    console.log("Iniciando sesión...");
   },
   forgotPassword() {
     this.$q
