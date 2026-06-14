@@ -1,5 +1,4 @@
 import axios from "axios";
-import { LocalStorage } from "quasar";
 import { useUserStore } from "src/stores/user";
 import { Notify } from "quasar";
 import { Loading } from "quasar";
@@ -15,10 +14,7 @@ const axios_servma_b = axios.create({
 });
 const verify_token = (response) => {
   if (response.request.status === 401) {
-    LocalStorage.clear();
-
     useUserStore().logout();
-    // router().replace('/');
     Loading.hide();
 
     Notify.create({

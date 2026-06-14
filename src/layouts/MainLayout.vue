@@ -621,7 +621,7 @@ import { serviceHttp } from "src/utils/serviceHttp";
 // import ChristmasSnow from "src/components/ChristmasSnow.vue";
 export default {
   data() {
-    const hiddenTemporaryRoutes = ["/dox"];
+    const hiddenTemporaryRoutes = [];
     const roleMenu = useUserStore().getRols() || [];
     const filteredMenu = roleMenu.filter((item) => {
       if (!item || !item.route) return true;
