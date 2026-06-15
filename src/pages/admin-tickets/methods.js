@@ -6,8 +6,8 @@ const ADMIN_ROLES = ["ROL_ADM", "ROL_ADM_SU"];
 
 export default {
   checkAdminAccess() {
-    const user = useUserStore().getUser();
-    if (!ADMIN_ROLES.includes(user.rol)) {
+    const user = useUserStore().user;
+    if (!user || !ADMIN_ROLES.includes(user.rol)) {
       this.$q.notify({
         color: "red-8",
         textColor: "white",
@@ -32,7 +32,7 @@ export default {
       id: Date.now(),
       ...action,
       fecha: new Date().toISOString(),
-      ejecutadoPor: useUserStore().getUser().nom_usuario,
+      ejecutadoPor: useUserStore().user?.nom_usuario || "",
     };
     this.actionHistory.unshift(entry);
     // Mantener solo últimas 100 entradas

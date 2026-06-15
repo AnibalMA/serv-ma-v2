@@ -74,6 +74,7 @@ export default function () {
       desc_perfil: "",
       pin_perfil: "",
     },
+    editingService: null,
     editServiceForm: {
       id_usuario_servicio: null,
       desc_perfil: "",

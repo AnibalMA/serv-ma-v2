@@ -18,7 +18,7 @@ const routes = [
     beforeEnter: (to, from, next) => {
       // console.log('to', to);
       // console.log('from', from);
-      const oUser = useUserStore().getUser();
+      const oUser = useUserStore().user;
       if (oUser?.id) {
         if (to.path === "/") {
           next("/dashboard");
@@ -73,7 +73,7 @@ const routes = [
         path: "admin-users",
         component: () => import("pages/admin-users/admin-users-view.vue"),
         beforeEnter: (to, from, next) => {
-          const oUser = useUserStore().getUser();
+          const oUser = useUserStore().user;
           if (oUser?.id && ["ROL_ADM", "ROL_ADM_SU"].includes(oUser.rol)) {
             next();
           } else {
@@ -92,7 +92,7 @@ const routes = [
         path: "admin-tickets",
         component: () => import("pages/admin-tickets/admin-tickets-view.vue"),
         beforeEnter: (to, from, next) => {
-          const oUser = useUserStore().getUser();
+          const oUser = useUserStore().user;
           if (oUser?.id && ["ROL_ADM", "ROL_ADM_SU"].includes(oUser.rol)) {
             next();
           } else {
@@ -111,7 +111,7 @@ const routes = [
         path: "admin-payments",
         component: () => import("pages/admin-payments/admin-payments-view.vue"),
         beforeEnter: (to, from, next) => {
-          const oUser = useUserStore().getUser();
+          const oUser = useUserStore().user;
           if (oUser?.id && ["ROL_ADM", "ROL_ADM_SU"].includes(oUser.rol)) {
             next();
           } else {
@@ -131,7 +131,7 @@ const routes = [
     path: "/login",
     name: "login",
     beforeEnter: (to, from, next) => {
-      const oUser = useUserStore().getUser();
+      const oUser = useUserStore().user;
       if (oUser?.id) {
         next("/dashboard");
       } else {

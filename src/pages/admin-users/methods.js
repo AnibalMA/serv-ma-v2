@@ -60,7 +60,7 @@ export default {
   },
 
   checkAdminAccess() {
-    const user = useUserStore().getUser();
+    const user = useUserStore().user;
     if (!ADMIN_ROLES.includes(user.rol)) {
       this.$q.notify({
         color: "red-8",
@@ -164,12 +164,13 @@ export default {
     this.showCreateUserDialog = true;
   },
 
-  saveNewUser() {
+  saveNewUser(form) {
     if (!this.checkAdminAccess()) return;
+    if (!form) form = this.createUserForm;
 
     const payload = {
-      ...this.createUserForm,
-      num_opc: Number(this.createUserForm.num_opc || 1),
+      ...form,
+      num_opc: Number(form.num_opc || 1),
     };
 
     this.$q.loading.show({ message: "Creando usuario..." });
@@ -350,6 +351,7 @@ export default {
   },
 
   onOpenEditService(service) {
+    this.editingService = service;
     this.editServiceForm = {
       id_usuario_servicio: service?._serviceId,
       desc_perfil: service?.desc_perfil || "",
@@ -358,10 +360,11 @@ export default {
     this.showEditServiceDialog = true;
   },
 
-  async saveUserServiceEdit() {
+  async saveUserServiceEdit(form) {
     if (!this.checkAdminAccess()) return;
+    if (!form) form = this.editServiceForm;
 
-    if (!this.editServiceForm.id_usuario_servicio) {
+    if (!form.id_usuario_servicio) {
       this.$q.notify({
         color: "orange-8",
         textColor: "white",
@@ -375,9 +378,9 @@ export default {
 
     try {
       const payload = {
-        id_usuario_servicio: Number(this.editServiceForm.id_usuario_servicio),
-        desc_perfil: (this.editServiceForm.desc_perfil || "").trim(),
-        pin: (this.editServiceForm.pin || "").trim(),
+        id_usuario_servicio: Number(form.id_usuario_servicio),
+        desc_perfil: (form.desc_perfil || "").trim(),
+        pin: (form.pin || "").trim(),
       };
 
       const { data } = await serviceHttp.post("/change-service", payload);
@@ -508,10 +511,11 @@ export default {
     return pg?.correo_acc || null;
   },
 
-  savePlatformService() {
+  savePlatformService(form) {
     if (!this.checkAdminAccess()) return;
+    if (!form) form = this.platformServiceForm;
 
-    if (!this.platformServiceForm.id_usuario) {
+    if (!form.id_usuario) {
       this.$q.notify({
         color: "orange-8",
         textColor: "white",
@@ -522,13 +526,13 @@ export default {
     }
 
     const payload = {
-      id_usuario: Number(this.platformServiceForm.id_usuario),
-      id_grupo: Number(this.platformServiceForm.id_grupo),
-      id_plataforma: Number(this.platformServiceForm.id_plataforma),
-      dia_pago: Number(this.platformServiceForm.dia_pago),
-      monto: Number(this.platformServiceForm.monto),
-      desc_perfil: (this.platformServiceForm.desc_perfil || "").trim(),
-      pin_perfil: (this.platformServiceForm.pin_perfil || "").trim(),
+      id_usuario: Number(form.id_usuario),
+      id_grupo: Number(form.id_grupo),
+      id_plataforma: Number(form.id_plataforma),
+      dia_pago: Number(form.dia_pago),
+      monto: Number(form.monto),
+      desc_perfil: (form.desc_perfil || "").trim(),
+      pin_perfil: (form.pin_perfil || "").trim(),
     };
 
     this.$q.loading.show({ message: "Asignando servicio de plataforma..." });
@@ -587,12 +591,13 @@ export default {
     this.showEditDialog = true;
   },
 
-  saveUserEdit() {
+  saveUserEdit(form) {
     if (!this.checkAdminAccess()) return;
+    if (!form) form = this.editForm;
     this.$q.loading.show({ message: "Guardando cambios..." });
 
     serviceHttp
-      .post("/update-user-profile", this.editForm)
+      .post("/update-user-profile", form)
       .then(({ data }) => {
         this.$q.loading.hide();
         if (data?.ok) {
@@ -696,9 +701,11 @@ export default {
     this.showServiceDialog = true;
   },
 
-  saveDiscount() {
+  saveDiscount(form) {
     if (!this.checkAdminAccess()) return;
-    if (this.discountForm.monto <= 0) {
+    if (!form) form = this.discountForm;
+
+    if (form.monto <= 0) {
       this.$q.notify({
         color: "orange-8",
         textColor: "white",
@@ -708,8 +715,8 @@ export default {
       return;
     }
     if (
-      this.discountForm.tipo_desc === "COMBO" &&
-      this.discountForm.factor <= 0
+      form.tipo_desc === "COMBO" &&
+      form.factor <= 0
     ) {
       this.$q.notify({
         color: "orange-8",
@@ -722,15 +729,14 @@ export default {
 
     this.$q.loading.show({ message: "Registrando descuento..." });
 
-    const esCombo = this.discountForm.tipo_desc === "COMBO";
+    const esCombo = form.tipo_desc === "COMBO";
     const payload = {
-      id_usuario: this.discountForm.id_usuario,
-      monto_descuento: this.discountForm.monto,
-      // NORMAL: factor = monto (se aplica todo de una vez); COMBO: factor por boleta
-      factor_desc: esCombo ? this.discountForm.factor : this.discountForm.monto,
-      desc_nota: this.discountForm.descripcion,
-      desc_nota_short: String(this.discountForm.descripcion).substring(0, 50),
-      tipo_desc: this.discountForm.tipo_desc,
+      id_usuario: form.id_usuario,
+      monto_descuento: form.monto,
+      factor_desc: esCombo ? form.factor : form.monto,
+      desc_nota: form.descripcion,
+      desc_nota_short: String(form.descripcion).substring(0, 50),
+      tipo_desc: form.tipo_desc,
     };
 
     serviceHttp
@@ -806,11 +812,13 @@ export default {
     }
   },
 
-  async savePayBoleta() {
+  async savePayBoleta(form, modo) {
     if (!this.checkAdminAccess()) return;
+    if (!form) form = this.payBoletaForm;
+    if (!modo) modo = this.modoPayBoleta;
 
-    if (this.modoPayBoleta === "boletas") {
-      if (!this.payBoletaForm.bAll && !this.payBoletaForm.idBoleta.length) {
+    if (modo === "boletas") {
+      if (!form.bAll && !form.idBoleta.length) {
         this.$q.notify({
           color: "orange-8",
           textColor: "white",
@@ -820,8 +828,8 @@ export default {
         return;
       }
       if (
-        !this.payBoletaForm.montoCancelado ||
-        this.payBoletaForm.montoCancelado <= 0
+        !form.montoCancelado ||
+        form.montoCancelado <= 0
       ) {
         this.$q.notify({
           color: "orange-8",
@@ -832,7 +840,7 @@ export default {
         return;
       }
     } else {
-      if (!this.payBoletaForm.idDetalle.length) {
+      if (!form.idDetalle.length) {
         this.$q.notify({
           color: "orange-8",
           textColor: "white",
@@ -846,18 +854,18 @@ export default {
     this.$q.loading.show({ message: "Registrando pago..." });
 
     let payload;
-    if (this.modoPayBoleta === "boletas") {
+    if (modo === "boletas") {
       payload = {
-        idUsuario: this.payBoletaForm.id_usuario,
-        montoCancelado: Number(this.payBoletaForm.montoCancelado),
-        ...(this.payBoletaForm.bAll
+        idUsuario: form.id_usuario,
+        montoCancelado: Number(form.montoCancelado),
+        ...(form.bAll
           ? { bAll: true }
-          : { idBoleta: this.payBoletaForm.idBoleta }),
+          : { idBoleta: form.idBoleta }),
       };
     } else {
       payload = {
-        idUsuario: this.payBoletaForm.id_usuario,
-        idDetalle: this.payBoletaForm.idDetalle,
+        idUsuario: form.id_usuario,
+        idDetalle: form.idDetalle,
       };
     }
 

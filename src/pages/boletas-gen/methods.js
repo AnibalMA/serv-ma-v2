@@ -180,7 +180,6 @@ export default {
     }
   },
   onViewBoleta: function (oBoleta) {
-    // console.log(oBoleta);
     this.$q.loading.show({ message: "Obteniendo la boleta..." });
 
     serviceHttp
@@ -192,17 +191,40 @@ export default {
         }
       )
       .then((response) => {
+        this.$q.loading.hide();
+
+        const contentType = response.headers?.["content-type"] || "";
+        if (!contentType.includes("pdf") && !contentType.includes("application/octet-stream")) {
+          this.$q.notify({
+            color: "red-8",
+            textColor: "white",
+            icon: "error",
+            message: "La boleta PDF no está disponible o hubo un error al generarla",
+          });
+          return;
+        }
+
         const url = window.URL.createObjectURL(
           new Blob([response.data], { type: "application/pdf" })
         );
-        this.$q.loading.hide();
         window.open(url);
       })
       .catch((error) => {
         this.$q.loading.hide();
-        console.log(error);
+        console.error(error);
+
+        const msg =
+          error?.response?.data && error.response.data instanceof ArrayBuffer
+            ? this._parseErrorFromArrayBuffer(error.response.data)
+            : error?.response?.data?.sMessage || error?.message;
+
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message: msg || "Error al obtener la boleta PDF",
+        });
       });
-    // this.$router.push({ name: "boleta", params: { boleta: oBoleta } });
   },
   onDownloadBoleta: function (oBoleta) {
     this.$q.loading.show({ message: "Descargando..." });
@@ -216,12 +238,22 @@ export default {
         }
       )
       .then((response) => {
+        this.$q.loading.hide();
+
+        const contentType = response.headers?.["content-type"] || "";
+        if (!contentType.includes("pdf") && !contentType.includes("application/octet-stream")) {
+          this.$q.notify({
+            color: "red-8",
+            textColor: "white",
+            icon: "error",
+            message: "La boleta PDF no está disponible o hubo un error al generarla",
+          });
+          return;
+        }
+
         const url = window.URL.createObjectURL(
           new Blob([response.data], { type: "application/pdf" })
         );
-
-        this.$q.loading.hide();
-
         const link = document.createElement("a");
         link.href = url;
         link.setAttribute("download", `Boleta_${oBoleta.cod_boleta}.pdf`);
@@ -231,8 +263,31 @@ export default {
       })
       .catch((error) => {
         this.$q.loading.hide();
-        console.log(error);
+        console.error(error);
+
+        const msg =
+          error?.response?.data && error.response.data instanceof ArrayBuffer
+            ? this._parseErrorFromArrayBuffer(error.response.data)
+            : error?.response?.data?.sMessage || error?.message;
+
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message: msg || "Error al descargar la boleta PDF",
+        });
       });
+  },
+
+  _parseErrorFromArrayBuffer(buf) {
+    try {
+      const decoder = new TextDecoder("utf-8");
+      const text = decoder.decode(buf);
+      const json = JSON.parse(text);
+      return json?.sMessage || json?.error || json?.message || "Error del servidor";
+    } catch {
+      return "Error del servidor";
+    }
   },
 
   getServiciosList(iUId) {
@@ -780,5 +835,17 @@ export default {
         // Restaurar el estado visual si hay error
         this.userActiveDisplay = this.userActive;
       });
+  },
+
+  getVisibleBoletaCols(cols, row) {
+    return cols.filter((col) =>
+      row.desc_estado == "Pendiente"
+        ? !["monto_cancelado", "fecha_cancelado"].includes(col.name)
+        : true
+    );
+  },
+
+  getVisibleServicioCols(cols) {
+    return cols.filter((col) => col.name !== "actions");
   },
 };

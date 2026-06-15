@@ -1,45 +1,39 @@
 import { defineStore } from "pinia";
 import { LocalStorage } from "quasar";
 
+function parseUser() {
+  try {
+    const raw = LocalStorage.getItem("-oUI");
+    return raw ? JSON.parse(atob(raw)) : null;
+  } catch {
+    return null;
+  }
+}
+
 export const useUserStore = defineStore("User", {
   state: () => ({
-    oUser: LocalStorage.getItem("user"),
+    oUser: parseUser(),
   }),
+  getters: {
+    user: (state) => state.oUser,
+    rols: (state) => state.oUser?.aOpcMenuNew || [],
+    theme: (state) => state.oUser?.theme || "light",
+  },
   actions: {
     setUser(oUser) {
-      LocalStorage.set("-oUI", btoa(JSON.stringify(oUser ? oUser : {})));
-      this.oUser = LocalStorage.getItem("-oUI");
-    },
-    getUser() {
-      return this.oUser
-        ? JSON.parse(atob(this.oUser))
-        : LocalStorage.getItem("-oUI")
-        ? JSON.parse(atob(LocalStorage.getItem("-oUI")))
-        : {};
-    },
-    getRols() {
-      return this.oUser
-        ? JSON.parse(atob(this.oUser)).aOpcMenuNew
-        : LocalStorage.getItem("-oUI")
-        ? JSON.parse(atob(LocalStorage.getItem("-oUI"))).aOpcMenuNew
-        : [];
-    },
-    getTheme() {
-      return this.oUser
-        ? JSON.parse(atob(this.oUser)).theme
-        : LocalStorage.getItem("-oUI")
-        ? JSON.parse(atob(LocalStorage.getItem("-oUI"))).theme
-        : "light";
+      const parsed = oUser ? oUser : {};
+      this.oUser = parsed;
+      LocalStorage.set("-oUI", btoa(JSON.stringify(parsed)));
     },
     setTheme(theme) {
-      this.oUser = this.getUser();
-      this.oUser.theme = theme;
-      LocalStorage.set("-oUI", btoa(JSON.stringify(this.oUser)));
-      this.oUser = LocalStorage.getItem("-oUI");
+      if (this.oUser) {
+        this.oUser.theme = theme;
+        LocalStorage.set("-oUI", btoa(JSON.stringify(this.oUser)));
+      }
     },
     logout() {
-      LocalStorage.remove("-oUI");
       this.oUser = null;
+      LocalStorage.remove("-oUI");
     },
   },
 });

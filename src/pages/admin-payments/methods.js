@@ -6,8 +6,8 @@ const ADMIN_ROLES = ["ROL_ADM", "ROL_ADM_SU"];
 export default {
   // ── Seguridad ──────────────────────────────────────────────────────────────
   checkAdminAccess() {
-    const user = useUserStore().getUser();
-    if (!ADMIN_ROLES.includes(user.rol)) {
+    const user = useUserStore().user;
+    if (!user || !ADMIN_ROLES.includes(user.rol)) {
       this.$q.notify({
         color: "red-8",
         textColor: "white",

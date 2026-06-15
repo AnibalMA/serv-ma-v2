@@ -52,11 +52,7 @@
           <q-card bordered flat class="col-12">
             <q-list dense>
               <q-item
-                v-for="col in props.cols.filter((col) =>
-                  props.row.desc_estado == 'Pendiente'
-                    ? !['monto_cancelado', 'fecha_cancelado'].includes(col.name)
-                    : true
-                )"
+                v-for="col in getVisibleBoletaCols(props.cols, props.row)"
                 :key="col.name"
                 class="q-my-sm"
               >

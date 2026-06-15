@@ -622,15 +622,15 @@ import { serviceHttp } from "src/utils/serviceHttp";
 export default {
   data() {
     const hiddenTemporaryRoutes = [];
-    const roleMenu = useUserStore().getRols() || [];
+    const roleMenu = useUserStore().rols;
     const filteredMenu = roleMenu.filter((item) => {
       if (!item || !item.route) return true;
       return !hiddenTemporaryRoutes.includes(item.route);
     });
 
     return {
-      activateDark: useUserStore().getTheme() === "dark" ? true : false,
-      user: useUserStore().getUser(),
+      activateDark: useUserStore().theme === "dark",
+      user: useUserStore().user,
       drawer: false,
       images: {
         boyImage,
@@ -1051,7 +1051,7 @@ export default {
   },
   created() {
     // Inicializar el tema basado en la preferencia guardada
-    const savedTheme = useUserStore().getTheme();
+    const savedTheme = useUserStore().theme;
     Dark.set(savedTheme === "dark");
   },
   /* components: {
