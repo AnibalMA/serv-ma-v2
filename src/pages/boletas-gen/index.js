@@ -17,10 +17,20 @@ export default {
         (servicio) => servicio.Estado !== "Activo"
       );
     },
+    selectedGrupoEmail() {
+      if (!this.nuevoGrupo || !this.selectedServicioForGrupo) return null;
+      const pg = this.plataformaGrupos.find(
+        (p) =>
+          String(p.id_plataforma) === String(this.selectedServicioForGrupo.IdPlataforma) &&
+          String(p.id_grupo) === String(this.nuevoGrupo)
+      );
+      return pg?.correo_acc || null;
+    },
   },
   created: function () {
     // this.getList("Pending");
     this.getListUsers();
+    this.loadMasterData();
   },
   setup: function () {
     const userStore = useUserStore();

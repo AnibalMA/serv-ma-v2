@@ -170,8 +170,15 @@ export default function () {
     // Dialog states
     showDiaPagoDialog: false,
     showEditDialog: false,
+    showGrupoDialog: false,
     selectedServicio: null,
+    selectedServicioForGrupo: null,
     nuevoDiaPago: null,
+    nuevoGrupo: null,
+    groupOptions: [],
+    plataformaGrupos: [],
+    filteredGroupOptions: [],
+    loadingMasterData: false,
     editingServicio: {
       Id: null,
       IdGrupo: null,

@@ -404,6 +404,16 @@
                       >
                         <q-tooltip>Cambiar día de pago</q-tooltip>
                       </q-btn>
+                      <q-btn
+                        icon="swap_horiz"
+                        @click="onChangeGrupo(props.row)"
+                        round
+                        color="purple"
+                        dense
+                        size="sm"
+                      >
+                        <q-tooltip>Cambiar Grupo</q-tooltip>
+                      </q-btn>
                     </div>
                   </q-item-section>
                 </q-item>
@@ -462,6 +472,15 @@
                 @click="onChangeDiaPago(props.row)"
                 round
                 color="orange"
+                class="q-mr-sm"
+                dense
+              ></q-btn>
+              <q-btn
+                icon="swap_horiz"
+                @click="onChangeGrupo(props.row)"
+                round
+                color="purple"
+                class="q-mr-sm"
                 dense
               ></q-btn>
             </q-td>
@@ -492,6 +511,66 @@
               label="Confirmar"
               color="primary"
               @click="confirmChangeDiaPago"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <!-- Dialog para cambiar grupo -->
+      <q-dialog v-model="showGrupoDialog" persistent>
+        <q-card class="dialog-card">
+          <q-card-section>
+            <div class="text-h6">Cambiar Grupo</div>
+            <div class="text-subtitle2 text-grey-7">
+              {{
+                selectedServicioForGrupo
+                  ? `${selectedServicioForGrupo.Plataforma} — ${selectedServicioForGrupo.Grupo}`
+                  : ""
+              }}
+            </div>
+          </q-card-section>
+          <q-card-section class="q-pt-none">
+            <q-select
+              filled
+              v-model="nuevoGrupo"
+              :options="filteredGroupOptions"
+              label="Seleccionar nuevo grupo"
+              emit-value
+              map-options
+              class="q-mb-md"
+            />
+            <q-card
+              v-if="nuevoGrupo"
+              flat
+              bordered
+              class="bg-grey-1 q-pa-sm"
+            >
+              <q-item dense>
+                <q-item-section>
+                  <q-item-label class="text-grey-7 text-caption">Grupo seleccionado</q-item-label>
+                  <q-item-label class="text-weight-medium">
+                    {{ filteredGroupOptions.find(g => g.value === nuevoGrupo)?.label }}
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item dense v-if="selectedGrupoEmail">
+                <q-item-section>
+                  <q-item-label class="text-grey-7 text-caption">Correo del grupo</q-item-label>
+                  <q-item-label class="text-weight-medium">
+                    <q-icon name="email" size="xs" class="q-mr-xs" />
+                    {{ selectedGrupoEmail }}
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-card>
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat label="Cancelar" color="primary" v-close-popup />
+            <q-btn
+              flat
+              label="Confirmar"
+              color="primary"
+              @click="confirmChangeGrupo"
             />
           </q-card-actions>
         </q-card>

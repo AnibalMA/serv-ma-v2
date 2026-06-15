@@ -668,6 +668,110 @@ export default {
       });
   },
 
+  loadMasterData() {
+    this.loadingMasterData = true;
+
+    serviceHttp
+      .get("/getDataMaestra")
+      .then(({ data }) => {
+        const grupos = data?.data?.aGrupos || [];
+
+        this.groupOptions = grupos.map((g) => ({
+          label: g?.desc_grupo || g?.descripcion || `Grupo ${g?.id}`,
+          value: g?.id,
+        }));
+
+        this.plataformaGrupos = data?.data?.aPlataformaGrupos || [];
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+      .finally(() => {
+        this.loadingMasterData = false;
+      });
+  },
+
+  onChangeGrupo(oServicio) {
+    this.selectedServicioForGrupo = oServicio;
+    this.nuevoGrupo = null;
+
+    // Filtrar grupos que pertenecen a la misma plataforma
+    const idsGrupos = this.plataformaGrupos
+      .filter((pg) => String(pg.id_plataforma) === String(oServicio.IdPlataforma))
+      .map((pg) => pg.id_grupo);
+    this.filteredGroupOptions = this.groupOptions.filter((g) =>
+      idsGrupos.includes(g.value)
+    );
+
+    this.showGrupoDialog = true;
+  },
+
+  confirmChangeGrupo() {
+    if (!this.nuevoGrupo || !this.selectedServicioForGrupo) {
+      this.$q.notify({
+        color: "orange-8",
+        textColor: "white",
+        icon: "warning",
+        message: "Por favor seleccione un grupo",
+      });
+      return;
+    }
+
+    if (this.nuevoGrupo === this.selectedServicioForGrupo.IdGrupo) {
+      this.$q.notify({
+        color: "orange-8",
+        textColor: "white",
+        icon: "info",
+        message: "El servicio ya pertenece a ese grupo",
+      });
+      return;
+    }
+
+    this.$q.loading.show({ message: "Cambiando grupo del servicio..." });
+
+    serviceHttp
+      .post("/change-service-group", {
+        id_usuario_servicio: this.selectedServicioForGrupo.Id,
+        id_grupo: this.nuevoGrupo,
+      })
+      .then(({ data }) => {
+        this.$q.loading.hide();
+
+        if (data?.ok) {
+          this.$q.notify({
+            color: "green-8",
+            textColor: "white",
+            icon: "check_circle",
+            message: data?.sMessage || "Grupo cambiado correctamente",
+          });
+
+          this.showGrupoDialog = false;
+          this.selectedServicioForGrupo = null;
+          this.nuevoGrupo = null;
+
+          this.getServiciosList(this.optUser?.value);
+        } else {
+          this.$q.notify({
+            color: "red-8",
+            textColor: "white",
+            icon: "error",
+            message: data?.sMessage || "Error al cambiar el grupo",
+          });
+        }
+      })
+      .catch((error) => {
+        this.$q.loading.hide();
+        console.log(error);
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message:
+            error?.response?.data?.sMessage || "Error al cambiar el grupo",
+        });
+      });
+  },
+
   // Método para aplicar clases CSS a las filas según el estado del servicio
   getRowClass(row) {
     if (row.Estado === "Activo") {
