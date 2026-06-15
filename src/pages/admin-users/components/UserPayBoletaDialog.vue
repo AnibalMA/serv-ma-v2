@@ -287,13 +287,23 @@ export default {
     return {
       modoPayBoleta: "boletas",
       payBoletaForm: {
-        id_usuario: this.selectedUser?.id || null,
+        id_usuario: null,
         montoCancelado: 0,
         bAll: false,
         idBoleta: [],
         idDetalle: [],
       },
     };
+  },
+  watch: {
+    selectedUser: {
+      immediate: true,
+      handler(user) {
+        if (user?.id) {
+          this.payBoletaForm.id_usuario = user.id;
+        }
+      },
+    },
   },
   computed: {
     montoSeleccionado() {

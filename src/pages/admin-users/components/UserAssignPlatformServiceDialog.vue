@@ -161,7 +161,7 @@ export default {
   data() {
     return {
       form: {
-        id_usuario: this.selectedUser?.id || null,
+        id_usuario: null,
         id_grupo: null,
         id_plataforma: null,
         dia_pago: null,
@@ -170,6 +170,16 @@ export default {
         pin_perfil: "",
       },
     };
+  },
+  watch: {
+    selectedUser: {
+      immediate: true,
+      handler(user) {
+        if (user?.id) {
+          this.form.id_usuario = user.id;
+        }
+      },
+    },
   },
 };
 </script>

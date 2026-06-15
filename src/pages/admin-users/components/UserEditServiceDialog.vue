@@ -47,11 +47,24 @@ export default {
   data() {
     return {
       form: {
-        id_usuario_servicio: this.service?._serviceId || null,
-        desc_perfil: this.service?.desc_perfil || "",
-        pin: this.service?.pin || this.service?.pin_perfil || "",
+        id_usuario_servicio: null,
+        desc_perfil: "",
+        pin: "",
       },
     };
+  },
+  watch: {
+    service: {
+      immediate: true,
+      handler(s) {
+        if (!s) return;
+        this.form = {
+          id_usuario_servicio: s._serviceId || null,
+          desc_perfil: s.desc_perfil || "",
+          pin: s.pin || s.pin_perfil || "",
+        };
+      },
+    },
   },
 };
 </script>

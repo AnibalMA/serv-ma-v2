@@ -119,13 +119,22 @@ export default {
   data() {
     return {
       form: {
-        id_usuario: this.selectedUser?.id || null,
+        id_usuario: null,
         monto: 0,
         factor: 0,
         tipo_desc: "NORMAL",
         descripcion: "",
       },
     };
+  },
+  watch: {
+    selectedUser: {
+      immediate: true,
+      handler(u) {
+        if (!u?.id) return;
+        this.form.id_usuario = u.id;
+      },
+    },
   },
 };
 </script>
