@@ -91,7 +91,7 @@
 
             <q-card-section class="message-container">
               <template v-for="(message, index) in messageList" :key="index">
-                <div class="message-item" v-html="message"></div>
+                <div class="message-item" v-html="sanitizeHtml(message)"></div>
               </template>
             </q-card-section>
           </q-card>

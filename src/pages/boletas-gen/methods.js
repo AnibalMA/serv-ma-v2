@@ -70,7 +70,6 @@ export default {
             message: data?.sMessage,
           });
 
-          console.log(this.arr_users);
           // useUserStore().setUser(data?.data || {});
 
           // this.$router.replace("/dashboard");

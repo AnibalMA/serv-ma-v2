@@ -5,12 +5,12 @@ import { Loading } from "quasar";
 
 const axios_servma = axios.create({
   baseURL: process.env.API_BACKEND,
-  timeout: 180000,
+  timeout: 60000,
   withCredentials: true,
 });
 const axios_servma_b = axios.create({
   baseURL: process.env.API_BACKEND_B,
-  timeout: 180000,
+  timeout: 60000,
 });
 const verify_token = (response) => {
   if (response.request.status === 401) {

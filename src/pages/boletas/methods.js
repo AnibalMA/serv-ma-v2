@@ -8,8 +8,6 @@ export default {
     serviceHttp
       .get(`/getBoleta${iUId ? "/" + iUId : ""}?bEstado=${sState}`)
       .then(({ data }) => {
-        console.log(data);
-
         this.$q.loading.hide();
 
         this.arr_boletas = data?.data || [];
@@ -22,7 +20,6 @@ export default {
             message: data?.sMessage,
           });
 
-          console.log(this.arr_boletas);
           // useUserStore().setUser(data?.data || {});
 
           // this.$router.replace("/dashboard");

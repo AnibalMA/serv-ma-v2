@@ -2,6 +2,7 @@
 import { serviceHttp } from "../../utils/serviceHttp";
 import { useMessages } from "./composables/useMessages";
 import MessageDisplay from "./components/MessageDisplay.vue";
+import { sanitize } from "src/utils/sanitize";
 
 const { messages, isTyping, addMessage, clearMessages } = useMessages();
 
@@ -9,6 +10,9 @@ const { messages, isTyping, addMessage, clearMessages } = useMessages();
 let socketInstance = null;
 
 export default {
+  sanitizeHtml(html) {
+    return sanitize(html);
+  },
   // Método para obtener la instancia del socket desde el layout padre
   getSocketFromParent() {
     // Buscar el componente MainLayout que tiene el socket
@@ -44,8 +48,6 @@ export default {
     serviceHttp
       .get(`/user_plataformas`)
       .then(({ data }) => {
-        console.log(data);
-
         this.$q.loading.hide();
 
         this.arr_platforms_u = data?.data || [];
@@ -84,8 +86,6 @@ export default {
     serviceHttp
       .post(`/platform_options`, { platform })
       .then(({ data }) => {
-        console.log(data);
-
         this.$q.loading.hide();
 
         this.services = data?.data || [];
@@ -103,7 +103,6 @@ export default {
             message: data?.sMessage,
           });
 
-          console.log(this.services);
         } else {
           this.$q.notify({
             color: "red-8",

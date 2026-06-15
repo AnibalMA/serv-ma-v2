@@ -8,7 +8,7 @@
           class="message-item"
           :class="getMessageClass(msg)"
         >
-          <div v-html="msg.content"></div>
+          <div v-html="sanitize(msg.content)"></div>
         </div>
       </transition-group>
 
@@ -23,6 +23,7 @@
 
 <script setup>
 import { watch, ref } from "vue";
+import { sanitize } from "src/utils/sanitize";
 
 const props = defineProps({
   messages: {
