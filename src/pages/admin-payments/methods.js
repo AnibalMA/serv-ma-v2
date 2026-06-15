@@ -110,7 +110,7 @@ export default {
         color: "red-8",
         textColor: "white",
         icon: "error",
-        message: "Error de red al aprobar la solicitud",
+        message: err.response?.data?.sMessage || "Error de red al aprobar la solicitud",
       });
     } finally {
       this.loadingAction = false;
@@ -169,7 +169,7 @@ export default {
         color: "red-8",
         textColor: "white",
         icon: "error",
-        message: "Error de red al rechazar la solicitud",
+        message: err.response?.data?.sMessage || "Error de red al rechazar la solicitud",
       });
     } finally {
       this.loadingAction = false;

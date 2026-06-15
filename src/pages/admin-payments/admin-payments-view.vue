@@ -61,7 +61,101 @@
       binary-state-sort
       :rows-per-page-options="[10, 20, 50]"
       no-data-label="No hay solicitudes pendientes de validación"
+      :grid="$q.screen.lt.md"
+      :hide-header="$q.screen.lt.md"
     >
+      <template v-slot:item="props">
+        <div class="col-12">
+          <q-card flat bordered class="q-pa-sm q-mb-sm">
+            <!-- Acciones + Estado badge -->
+            <div class="row items-center justify-between q-mb-sm">
+              <div class="col">
+                <q-chip
+                  v-if="props.row.nom_payment_opc"
+                  color="blue-grey-7"
+                  text-color="white"
+                  size="sm"
+                  dense
+                  :label="props.row.nom_payment_opc"
+                />
+                <span v-else class="text-caption text-grey-5">Sin método de pago</span>
+              </div>
+              <div class="col-auto">
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="check_circle"
+                  color="positive"
+                  size="sm"
+                  @click="onApproveRequest(props.row)"
+                >
+                  <q-tooltip>Aprobar</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="cancel"
+                  color="red-8"
+                  size="sm"
+                  class="q-ml-xs"
+                  @click="onRejectRequest(props.row)"
+                >
+                  <q-tooltip>Rechazar</q-tooltip>
+                </q-btn>
+              </div>
+            </div>
+
+            <!-- Usuario -->
+            <div class="text-weight-medium">
+              {{ props.row.nom_usuario }} {{ props.row.ape_usuario }}
+            </div>
+            <div class="text-caption text-grey-6">
+              {{ props.row.email_usuario }}
+            </div>
+
+            <!-- Boleta + Montos -->
+            <div class="row q-mt-sm q-col-gutter-sm">
+              <div class="col-6">
+                <div class="text-caption text-grey-7">N° Boleta</div>
+                <div class="text-body2">{{ props.row.cod_boleta }}</div>
+              </div>
+              <div class="col-6 text-right">
+                <div class="text-caption text-grey-7">Monto declarado</div>
+                <div class="text-body2 text-weight-bold"
+                  :class="props.row.monto_declarado >= (props.row.monto_facturado - (props.row.monto_cancelado || 0)) ? 'text-positive' : 'text-orange-8'"
+                >
+                  {{ formatMonto(props.row.monto_declarado) }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Comprobante imagen -->
+            <div class="row q-mt-sm items-center" v-if="props.row.screenshot_data">
+              <q-btn
+                icon="image"
+                flat
+                dense
+                color="primary"
+                size="sm"
+                @click="onViewScreenshot(props.row)"
+                label="Ver comprobante"
+              />
+            </div>
+
+            <!-- Comentarios -->
+            <div v-if="props.row.comments" class="text-caption text-grey-6 q-mt-xs">
+              {{ props.row.comments }}
+            </div>
+
+            <!-- Fecha -->
+            <div class="text-caption text-grey-5 text-right q-mt-xs">
+              {{ formatFecha(props.row.created_at) }}
+            </div>
+          </q-card>
+        </div>
+      </template>
       <!-- Columna: acciones -->
       <template #body-cell-actions="props">
         <q-td :props="props" class="text-center">
@@ -332,3 +426,12 @@ export default {
   ...componentOptions,
 };
 </script>
+
+<style scoped>
+@media (max-width: 599px) {
+  .text-h5 {
+    font-size: 1.3rem;
+    line-height: 1.2;
+  }
+}
+</style>

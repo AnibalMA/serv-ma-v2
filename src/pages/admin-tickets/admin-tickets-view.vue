@@ -568,8 +568,12 @@ export default {
 
 @media (max-width: 599px) {
   .admin-tickets-page .text-h4 {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     line-height: 1.2;
+  }
+
+  .admin-tickets-page p.text-grey-6 {
+    font-size: 0.8rem;
   }
 
   .admin-actions .q-btn {
