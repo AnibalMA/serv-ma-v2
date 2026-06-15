@@ -2,7 +2,7 @@
 import { serviceHttp } from "../../utils/serviceHttp";
 import { useMessages } from "./composables/useMessages";
 import MessageDisplay from "./components/MessageDisplay.vue";
-import { sanitize } from "src/utils/sanitize";
+import { sanitize, bindSafeEvents } from "src/utils/sanitize";
 
 const { messages, isTyping, addMessage, clearMessages } = useMessages();
 
@@ -349,11 +349,11 @@ export default {
     await new Promise((resolve) => setTimeout(resolve, iDelay));
     this.messageList.push(content);
 
-    // Scroll al final
     this.$nextTick(() => {
       const container = document.querySelector(".message-container");
       if (container) {
         container.scrollTop = container.scrollHeight;
+        bindSafeEvents(container, this);
       }
     });
 

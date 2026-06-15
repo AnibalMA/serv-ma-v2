@@ -23,7 +23,7 @@
 
 <script setup>
 import { watch, ref } from "vue";
-import { sanitize } from "src/utils/sanitize";
+import { sanitize, bindSafeEvents } from "src/utils/sanitize";
 
 const props = defineProps({
   messages: {
@@ -52,10 +52,17 @@ watch(
     setTimeout(() => {
       if (messageContainer.value) {
         messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+        bindSafeEvents(messageContainer.value, { copiarAlPortapapeles });
       }
     }, 100);
   }
 );
+
+const copiarAlPortapapeles = (text) => {
+  navigator.clipboard.writeText(text).then(() => {
+    // Could emit a notification event here
+  });
+};
 </script>
 
 <style scoped>
