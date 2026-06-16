@@ -74,7 +74,7 @@ const copiarAlPortapapeles = (text) => {
   max-height: 500px;
   overflow-y: auto;
   padding: 1rem;
-  background: white;
+  background: var(--q-card-bg);
   border-radius: 8px;
 }
 

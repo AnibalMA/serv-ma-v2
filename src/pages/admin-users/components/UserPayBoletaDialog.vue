@@ -16,7 +16,7 @@
         active-color="green-8"
         indicator-color="green-8"
         align="justify"
-        class="text-grey-7"
+        :class="$q.dark.isActive ? 'text-grey-6' : 'text-grey-7'"
         @update:model-value="
           () => {
             payBoletaForm.idBoleta = [];
@@ -40,7 +40,7 @@
         <template v-else>
           <template v-if="modoPayBoleta === 'boletas'">
             <div v-if="userPayBoletas.length" class="q-mb-md">
-              <div class="text-caption text-grey-7 q-mb-xs">
+              <div :class="$q.dark.isActive ? 'text-caption text-grey-6 q-mb-xs' : 'text-caption text-grey-7 q-mb-xs'">
                 Boletas pendientes
               </div>
               <q-list bordered separator dense>
@@ -114,7 +114,7 @@
 
           <template v-else>
             <div v-if="userPayBoletas.length">
-              <div class="text-caption text-grey-7 q-mb-sm">
+              <div :class="$q.dark.isActive ? 'text-caption text-grey-6 q-mb-sm' : 'text-caption text-grey-7 q-mb-sm'">
                 Selecciona los servicios a marcar como pagados
               </div>
 

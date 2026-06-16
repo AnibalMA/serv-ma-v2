@@ -10,7 +10,7 @@
       <q-card-section class="q-gutter-md">
         <div class="row q-col-gutter-sm">
           <div class="col-12">
-            <div class="text-caption text-grey-7 q-mb-xs">
+            <div :class="$q.dark.isActive ? 'text-caption text-grey-6 q-mb-xs' : 'text-caption text-grey-7 q-mb-xs'">
               Tipo de descuento
             </div>
             <q-btn-toggle

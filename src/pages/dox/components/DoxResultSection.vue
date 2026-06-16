@@ -95,7 +95,7 @@
             </div>
             <div
               v-if="result.data.description"
-              class="text-caption text-grey-7 q-mb-md"
+              :class="$q.dark.isActive ? 'text-caption text-grey-6 q-mb-md' : 'text-caption text-grey-7 q-mb-md'"
             >
               {{ result.data.description }}
             </div>

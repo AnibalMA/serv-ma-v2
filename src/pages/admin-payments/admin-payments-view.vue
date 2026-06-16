@@ -118,11 +118,11 @@
             <!-- Boleta + Montos -->
             <div class="row q-mt-sm q-col-gutter-sm">
               <div class="col-6">
-                <div class="text-caption text-grey-7">N° Boleta</div>
+                <div :class="$q.dark.isActive ? 'text-caption text-grey-6' : 'text-caption text-grey-7'">N° Boleta</div>
                 <div class="text-body2">{{ props.row.cod_boleta }}</div>
               </div>
               <div class="col-6 text-right">
-                <div class="text-caption text-grey-7">Monto declarado</div>
+                <div :class="$q.dark.isActive ? 'text-caption text-grey-6' : 'text-caption text-grey-7'">Monto declarado</div>
                 <div class="text-body2 text-weight-bold"
                   :class="props.row.monto_declarado >= (props.row.monto_facturado - (props.row.monto_cancelado || 0)) ? 'text-positive' : 'text-orange-8'"
                 >

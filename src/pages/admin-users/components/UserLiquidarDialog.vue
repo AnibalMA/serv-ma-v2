@@ -18,7 +18,7 @@
 
         <template v-else>
           <div v-if="boletas.length">
-            <div class="text-caption text-grey-7 q-mb-xs">
+            <div :class="$q.dark.isActive ? 'text-caption text-grey-6 q-mb-xs' : 'text-caption text-grey-7 q-mb-xs'">
               Cobros a liquidar ({{ boletas.length }})
             </div>
             <q-list bordered separator dense>

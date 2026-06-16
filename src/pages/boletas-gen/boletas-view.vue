@@ -543,20 +543,20 @@
               v-if="nuevoGrupo"
               flat
               bordered
-              class="bg-grey-1 q-pa-sm"
+              :class="$q.dark.isActive ? 'bg-grey-10 text-white q-pa-sm' : 'bg-grey-1 text-dark q-pa-sm'"
             >
               <q-item dense>
                 <q-item-section>
-                  <q-item-label class="text-grey-7 text-caption">Grupo seleccionado</q-item-label>
-                  <q-item-label class="text-weight-medium">
+                  <q-item-label :class="$q.dark.isActive ? 'text-grey-5 text-caption' : 'text-grey-7 text-caption'">Grupo seleccionado</q-item-label>
+                  <q-item-label :class="$q.dark.isActive ? 'text-weight-medium text-white' : 'text-weight-medium text-dark'">
                     {{ filteredGroupOptions.find(g => g.value === nuevoGrupo)?.label }}
                   </q-item-label>
                 </q-item-section>
               </q-item>
               <q-item dense v-if="selectedGrupoEmail">
                 <q-item-section>
-                  <q-item-label class="text-grey-7 text-caption">Correo del grupo</q-item-label>
-                  <q-item-label class="text-weight-medium">
+                  <q-item-label :class="$q.dark.isActive ? 'text-grey-5 text-caption' : 'text-grey-7 text-caption'">Correo del grupo</q-item-label>
+                  <q-item-label :class="$q.dark.isActive ? 'text-weight-medium text-white' : 'text-weight-medium text-dark'">
                     <q-icon name="email" size="xs" class="q-mr-xs" />
                     {{ selectedGrupoEmail }}
                   </q-item-label>
@@ -769,7 +769,7 @@
   background-color: rgba(0, 0, 0, 0.05);
   padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .user-status-active {
@@ -922,5 +922,11 @@
     min-width: 200px;
     justify-content: center;
   }
+}
+
+/* Dark theme overrides for user-status container */
+.body--dark .user-status-container {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
 }
 </style>

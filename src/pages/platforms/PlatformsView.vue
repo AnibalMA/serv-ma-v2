@@ -81,7 +81,7 @@
               v-for="(grupo, index) in platform.grupos"
               :key="grupo.id"
               :default-opened="index === 0"
-              :header-class="index % 2 === 0 ? 'bg-grey-1' : 'bg-white'"
+               :header-class="index % 2 === 0 ? ($q.dark.isActive ? 'bg-grey-10' : 'bg-grey-1') : ($q.dark.isActive ? 'bg-grey-9' : 'bg-white')"
             >
               <template v-slot:header>
                 <q-item-section>
@@ -107,7 +107,7 @@
               </template>
 
               <!-- Contenido del grupo -->
-              <div class="q-pa-md bg-grey-1">
+               <div :class="$q.dark.isActive ? 'surface-bg q-pa-md text-white' : 'bg-grey-1 q-pa-md'">
                 <!-- Cuentas -->
                 <div class="q-mb-md">
                   <div class="text-subtitle2 text-weight-medium q-mb-sm">
@@ -218,7 +218,7 @@
           </q-card-section>
 
           <!-- Footer con estadísticas -->
-          <q-card-section class="bg-grey-1">
+          <q-card-section :class="$q.dark.isActive ? 'surface-bg text-white' : 'bg-grey-1'">
             <div class="row items-center justify-between text-caption">
               <div class="text-grey-6">
                 Total perfiles: {{ getTotalProfiles(platform) }}

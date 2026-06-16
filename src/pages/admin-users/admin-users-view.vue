@@ -84,7 +84,7 @@
                 <div class="text-subtitle2 text-weight-medium ellipsis">
                   {{ props.row.nom_usuario }} {{ props.row.ape_usuario }}
                 </div>
-                <div class="text-caption text-grey-7 ellipsis">
+                <div :class="$q.dark.isActive ? 'text-caption text-grey-6 ellipsis' : 'text-caption text-grey-7 ellipsis'">
                   {{
                     props.row.email_principal_usuario ||
                     props.row.celular_principal_usuario ||

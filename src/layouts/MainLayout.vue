@@ -471,10 +471,6 @@
   .notification-item {
     border-bottom: 1px solid;
 
-    &:active {
-      background: rgba(0, 0, 0, 0.1);
-    }
-
     .q-item__label {
       line-height: 1.2;
     }
