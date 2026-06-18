@@ -1,6 +1,7 @@
 // src/pages/servicios/index.js
 import data from "./data";
 import methods from "./methods";
+import { bindSafeEvents } from "src/utils/sanitize";
 
 export default {
   name: "ServiciosPage",
@@ -9,6 +10,7 @@ export default {
   mounted() {
     this.getPlatformsByUser();
     window.$q = this.$q;
+    this.$nextTick(() => bindSafeEvents(this.$el));
   },
   beforeUnmount() {
     // Limpiar listeners de WebSocket al salir del componente
