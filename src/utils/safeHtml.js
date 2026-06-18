@@ -9,17 +9,27 @@ const HANDLERS = {
   },
 };
 
-DOMPurify.removeHook("uponSanitizeAttribute");
-DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
-  if (data.attrName === "onclick") {
-    data.keepAttr = true;
-  }
-});
-
 export function sanitize(html) {
-  return DOMPurify.sanitize(html, {
+  const onclickValues = [];
+  const encoded = html.replace(
+    /\bonclick\s*=\s*(?:"([^"]*)"|'([^']*)')/gi,
+    (match, dq, sq) => {
+      const id = onclickValues.length;
+      onclickValues.push(dq ?? sq);
+      return `data-onclick-id="${id}"`;
+    }
+  );
+
+  let sanitized = DOMPurify.sanitize(encoded, {
     ALLOW_UNKNOWN_PROTOCOLS: true,
   });
+
+  sanitized = sanitized.replace(
+    /data-onclick-id="(\d+)"/g,
+    (_, id) => `onclick="${onclickValues[id]}"`
+  );
+
+  return sanitized;
 }
 
 function parseArgs(raw) {
@@ -79,16 +89,9 @@ export function bindSafeEvents() {
   if (_bound) return;
   _bound = true;
 
-  console.log("🔊 bindSafeEvents: listener attached to document");
-
   document.addEventListener("click", function (e) {
-    console.log("🔊 click en document", e.target);
     const el = e.target.closest("[onclick]");
-    if (!el) {
-      console.log("  -> no [onclick] found");
-      return;
-    }
-    console.log("  -> found [onclick] on", el);
+    if (!el) return;
 
     const raw = el.getAttribute("onclick").trim();
     el.removeAttribute("onclick");
