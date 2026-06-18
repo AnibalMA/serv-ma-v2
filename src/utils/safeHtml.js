@@ -9,9 +9,15 @@ const HANDLERS = {
   },
 };
 
+DOMPurify.removeHook("uponSanitizeAttribute");
+DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
+  if (data.attrName === "onclick") {
+    data.keepAttr = true;
+  }
+});
+
 export function sanitize(html) {
   return DOMPurify.sanitize(html, {
-    ADD_ATTR: ["onclick", "target"],
     ALLOW_UNKNOWN_PROTOCOLS: true,
   });
 }
@@ -25,16 +31,20 @@ function parseArgs(raw) {
   let depth = 0;
   for (const ch of raw.trim()) {
     if (inStr) {
-      cur += ch;
-      if (ch === "\\") {
-        cur += "";
-      } else if (ch === quote) {
+      if (ch === quote) {
         inStr = false;
+        const trimmed = cur.trim();
+        if (trimmed) args.push(coerce(trimmed));
+        cur = "";
+      } else if (ch === "\\") {
+        cur += ch;
+      } else {
+        cur += ch;
       }
     } else if (ch === "'" || ch === '"') {
       inStr = true;
       quote = ch;
-      cur += ch;
+      cur = "";
     } else if (ch === "(" || ch === "[") {
       depth++;
       cur += ch;
@@ -86,12 +96,14 @@ export function bindSafeEvents(container) {
     }
 
     const iife = raw.match(
-      /^\(function\s*\(\s*\w+\s*\)\s*\{([\s\S]*)\}\s*\)\(\s*this\s*\)\s*$/
+      /^\(function\s*\(\s*(\w+)\s*\)\s*\{([\s\S]*)\}\s*\)\(\s*this\s*\)\s*$/
     );
     if (iife) {
       try {
-        const fn = new Function(iife[1]);
-        fn.call(el);
+        const paramName = iife[1];
+        const body = iife[2];
+        const fn = new Function(paramName, body);
+        fn.call(el, el);
       } catch (err) {
         console.error("Error ejecutando onclick:", err);
       }
