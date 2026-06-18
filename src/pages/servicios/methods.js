@@ -353,7 +353,7 @@ export default {
       const container = document.querySelector(".message-container");
       if (container) {
         container.scrollTop = container.scrollHeight;
-        bindSafeEvents(container, this);
+        bindSafeEvents(container);
       }
     });
 
