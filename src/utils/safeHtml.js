@@ -73,13 +73,22 @@ function coerce(val) {
   return val;
 }
 
-export function bindSafeEvents(container) {
-  if (!container || container._safeEventsBound) return;
-  container._safeEventsBound = true;
+let _bound = false;
 
-  container.addEventListener("click", function (e) {
+export function bindSafeEvents() {
+  if (_bound) return;
+  _bound = true;
+
+  console.log("🔊 bindSafeEvents: listener attached to document");
+
+  document.addEventListener("click", function (e) {
+    console.log("🔊 click en document", e.target);
     const el = e.target.closest("[onclick]");
-    if (!el) return;
+    if (!el) {
+      console.log("  -> no [onclick] found");
+      return;
+    }
+    console.log("  -> found [onclick] on", el);
 
     const raw = el.getAttribute("onclick").trim();
     el.removeAttribute("onclick");
