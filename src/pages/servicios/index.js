@@ -10,7 +10,7 @@ export default {
   mounted() {
     this.getPlatformsByUser();
     window.$q = this.$q;
-    this.$nextTick(() => bindSafeEvents(this.$el));
+    bindSafeEvents();
   },
   beforeUnmount() {
     // Limpiar listeners de WebSocket al salir del componente

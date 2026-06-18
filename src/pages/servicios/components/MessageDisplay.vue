@@ -52,7 +52,7 @@ watch(
     setTimeout(() => {
       if (messageContainer.value) {
         messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
-        bindSafeEvents(messageContainer.value);
+        bindSafeEvents();
       }
     }, 100);
   }
