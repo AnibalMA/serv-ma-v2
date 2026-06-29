@@ -74,7 +74,17 @@ module.exports = configure(function (ctx) {
       // polyfillModulePreload: true,
       // distDir
 
-      // extendViteConf (viteConf) {},
+      extendViteConf (viteConf) {
+        if (!viteConf.build) viteConf.build = {};
+        if (!viteConf.build.rollupOptions) viteConf.build.rollupOptions = {};
+        const out = viteConf.build.rollupOptions.output;
+        if (!out || Array.isArray(out)) {
+          viteConf.build.rollupOptions.output = { manualChunks: {} };
+        }
+        viteConf.build.rollupOptions.output.manualChunks = {
+          vendor: ['socket.io-client', 'dompurify'],
+        };
+      },
       // viteVuePluginOptions: {},
 
       vitePlugins: [

@@ -87,7 +87,7 @@
           style="border-radius: 18px; background-color: #173153; width: 350px"
         >
           <q-card-section class="text-center">
-            <q-img src="../../assets/logo_serv-ma.png" style="height: 150px">
+            <q-img src="../../assets/logo_serv-ma.png" style="height: 150px" fetchpriority="high">
               <template v-slot:loading>
                 <q-spinner-gears color="white" />
               </template>

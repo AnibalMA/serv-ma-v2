@@ -610,7 +610,6 @@ import { Dark } from "quasar";
 // import { serviceHttp } from "src/utils/serviceHttp";
 import boyImage from "src/assets/boy-avatar.png";
 import girlImage from "src/assets/girl-avatar.png";
-import christmasLogo from "src/assets/logo-christmas.png";
 import logoMA from "src/assets/logo_serv-ma.png";
 import { io } from "socket.io-client";
 import { serviceHttp } from "src/utils/serviceHttp";
