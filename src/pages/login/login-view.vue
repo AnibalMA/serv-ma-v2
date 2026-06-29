@@ -89,6 +89,7 @@
           <q-card-section class="text-center">
             <q-img
               src="/imgs/logo_serv-ma.webp"
+              srcset="/imgs/logo_serv-ma@2x.webp 2x"
               style="height: 150px"
               fetchpriority="high"
               loading="eager"
