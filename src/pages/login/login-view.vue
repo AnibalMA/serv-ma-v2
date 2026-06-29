@@ -87,7 +87,12 @@
           style="border-radius: 18px; background-color: #173153; width: 350px"
         >
           <q-card-section class="text-center">
-            <q-img src="../../assets/logo_serv-ma.png" style="height: 150px" fetchpriority="high">
+            <q-img
+              src="/imgs/logo_serv-ma.webp"
+              style="height: 150px"
+              fetchpriority="high"
+              loading="eager"
+            >
               <template v-slot:loading>
                 <q-spinner-gears color="white" />
               </template>
@@ -95,7 +100,7 @@
             <div class="text-h5 text-weight-bold lbl-login">
               Inicio de sesión
             </div>
-            <div>Accede con tu cuenta</div>
+            <div class="text-white">Accede con tu cuenta</div>
 
             <!-- Indicador de estado del servidor -->
             <div class="q-mt-sm">
@@ -105,7 +110,7 @@
                     ? 'green'
                     : 'red'
                 "
-                text-color="white"
+                text-color="dark"
                 size="sm"
                 :icon="
                   serverStatus.isOnline && !serverStatus.isInMaintenance
@@ -122,8 +127,8 @@
             <q-input
               dense
               outlined
-              label-color="grey-1"
-              color="grey-1"
+              label-color="white"
+              color="white"
               bg-color="primary"
               v-model="email"
               label="Correo electrónico"
@@ -132,8 +137,8 @@
             <q-input
               dense
               outlined
-              label-color="grey-1"
-              color="grey-1"
+              label-color="white"
+              color="white"
               bg-color="primary"
               class="q-mt-md"
               v-model="password"

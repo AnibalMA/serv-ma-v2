@@ -4,8 +4,6 @@ import { useUserStore } from "stores/user";
 import { useServerStatus } from "../servicios/composables/useServerStatus";
 import { serviceHttp } from "../../utils/serviceHttp";
 import { computed } from "vue";
-import ChristmasSnow from "src/components/ChristmasSnow.vue";
-
 export default {
   data() {
     return {
@@ -16,9 +14,6 @@ export default {
     };
   },
   methods,
-  components: {
-    ChristmasSnow,
-  },
   setup() {
     const userStore = useUserStore();
     const { serverStatus, isCheckingStatus, statusError, checkServerStatus } =

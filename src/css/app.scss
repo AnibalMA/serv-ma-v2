@@ -33,6 +33,10 @@ body {
   box-shadow: $primary 0px 0px 2px;
 }
 
+.card-login .q-field__native {
+  color: #ffffff !important;
+}
+
 .card-dashboard {
   max-width: 350px;
   width: 100%;
