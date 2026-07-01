@@ -160,6 +160,13 @@
                   ? 'orange'
                   : 'green'
               "
+              :icon="
+                props.row.bProcessValidation
+                  ? 'hourglass_empty'
+                  : props.row.desc_estado == 'Pendiente'
+                  ? 'schedule'
+                  : 'check_circle'
+              "
               text-color="white"
             >
               {{

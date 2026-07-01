@@ -45,6 +45,12 @@
                 :icon="userActiveDisplay ? 'check' : 'close'"
                 size="md"
               />
+              <q-icon
+                :name="userActiveDisplay ? 'check_circle' : 'cancel'"
+                :class="userActiveDisplay ? 'text-positive' : 'text-negative'"
+                size="sm"
+                class="q-mr-xs"
+              />
               <span
                 :class="userActiveDisplay ? 'text-positive' : 'text-negative'"
                 class="text-weight-medium text-caption"
@@ -238,6 +244,13 @@
                     : props.row.desc_estado == 'Pendiente'
                     ? 'orange'
                     : 'green'
+                "
+                :icon="
+                  props.row.bProcessValidation
+                    ? 'hourglass_empty'
+                    : props.row.desc_estado == 'Pendiente'
+                    ? 'schedule'
+                    : 'check_circle'
                 "
                 text-color="white"
               >
