@@ -215,12 +215,13 @@
 
     <!-- Modal de Pago -->
     <q-dialog v-model="showPaymentModal" persistent>
-      <q-card style="min-width: 400px">
+      <q-card class="payment-card">
         <q-card-section>
           <div class="text-h6">Realizar Pago</div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
+        <!-- Solo esta parte se desplaza, así los botones siempre se ven en el celular -->
+        <q-card-section class="q-pt-none scroll payment-body">
           <div class="row q-gutter-sm q-mb-md">
             <q-chip
               :label="`Boleta: ${selectedBoleta?.cod_boleta}`"
@@ -230,9 +231,7 @@
               icon="receipt"
             />
             <q-chip
-              :label="`Monto: ${
-                selectedBoleta ? formatMoney(selectedBoleta.monto_facturado) : ''
-              }`"
+              :label="`Por pagar: ${formatMoney(amountToPay)}`"
               color="green"
               text-color="white"
               size="md"
@@ -299,50 +298,107 @@
                     color="primary"
                     size="sm"
                     dense
+                    aria-label="Copiar número"
                   >
-                    <q-tooltip>Copiar detalles</q-tooltip>
+                    <q-tooltip>Copiar número</q-tooltip>
                   </q-btn>
                 </div>
               </div>
             </q-card-section>
           </q-card>
 
-          <!-- Mensaje informativo -->
+          <!-- Pago con QR (Yape) -->
+          <div v-if="selectedPaymentMethod?.qr_url" class="q-mb-md">
+            <div class="text-center q-mb-sm">
+              <div class="text-caption">Monto a pagar</div>
+              <div class="text-h4 text-weight-bold text-positive amount">
+                {{ formatMoney(amountToPay) }}
+              </div>
+            </div>
+
+            <!-- Fondo blanco para que el QR se pueda escanear también en modo oscuro -->
+            <div class="qr-box">
+              <q-img
+                :src="selectedPaymentMethod.qr_url"
+                :alt="`Código QR de ${selectedPaymentMethod.nom_payment_opc}`"
+                :ratio="1"
+                fit="contain"
+                spinner-color="primary"
+              />
+            </div>
+
+            <div v-if="$q.platform.has.touch" class="text-center q-mt-sm">
+              <q-btn
+                v-if="$q.platform.is.android"
+                :href="qrDownloadUrl"
+                outline
+                no-caps
+                color="primary"
+                icon="download"
+                label="Descargar QR"
+              />
+              <div v-if="$q.platform.is.ios" class="text-caption text-grey-6">
+                Mantén presionado el QR y toca «Guardar en Fotos»; luego elígelo
+                desde la galería en Yape.
+              </div>
+              <div v-else class="text-caption text-grey-6 q-mt-xs">
+                También puedes mantener presionado el QR para guardarlo.
+              </div>
+            </div>
+
+            <ol class="q-pl-lg q-mt-md q-mb-none text-body2">
+              <li>
+                Abre Yape y escanea el código (en el celular: guárdalo y
+                elígelo desde la galería en Yape).
+              </li>
+              <li>
+                Paga <strong>{{ formatMoney(amountToPay) }}</strong>.
+              </li>
+              <li>Escribe el número de operación y sube la captura.</li>
+            </ol>
+          </div>
+
+          <!-- Mensaje informativo (métodos sin QR) -->
           <q-card
-            v-if="selectedPaymentMethod"
+            v-else-if="selectedPaymentMethod"
             flat
             bordered
             class="q-mb-md bg-blue-1"
           >
             <q-card-section>
               <div class="row items-start q-gutter-sm">
-                <q-icon name="info" color="blue" size="md" />
+                <q-icon name="info" color="blue" size="md" aria-hidden="true" />
                 <div class="col text-blue-9">
                   <div class="text-body2">
                     <strong>Instrucciones:</strong>
                   </div>
                   <div class="text-body2">
-                    No olvides adjuntar el comprobante (captura de pantalla) del
-                    pago realizado.
+                    Después de pagar, escribe el número de operación y adjunta
+                    el comprobante (captura de pantalla) del pago realizado.
                   </div>
                 </div>
               </div>
             </q-card-section>
           </q-card>
 
-          <!-- Campo de comentarios -->
-          <div v-if="selectedPaymentMethod" class="q-mb-md">
-            <div class="text-subtitle2 q-mb-sm">Comentarios (Opcional)</div>
-            <q-input
-              v-model="paymentComment"
-              type="textarea"
-              filled
-              rows="3"
-              placeholder="Escribe aquí cualquier comentario adicional sobre el pago..."
-              counter
-              maxlength="500"
-            />
-          </div>
+          <!-- Número de operación -->
+          <q-input
+            v-model="operationNumber"
+            label="Número de operación"
+            name="nro_operacion"
+            hint="Está en la constancia del pago"
+            inputmode="numeric"
+            autocomplete="off"
+            spellcheck="false"
+            filled
+            lazy-rules
+            :rules="operationNumberRules"
+            class="q-mb-md"
+          >
+            <template v-slot:prepend>
+              <q-icon name="tag" aria-hidden="true" />
+            </template>
+          </q-input>
 
           <!-- Subir captura -->
           <div class="text-subtitle2 q-mb-sm">
@@ -353,21 +409,43 @@
             accept="image/*"
             filled
             label="Seleccionar imagen"
+            :loading="processingCapture"
             @update:model-value="onFileSelected"
             class="q-mb-md"
           >
             <template v-slot:prepend>
-              <q-icon name="attach_file" />
+              <q-icon name="attach_file" aria-hidden="true" />
             </template>
           </q-file>
+
+          <div role="status" aria-live="polite" class="text-caption text-grey-6">
+            {{ processingCapture ? "Preparando la imagen…" : "" }}
+          </div>
 
           <!-- Vista previa de la imagen -->
           <div v-if="paymentCapture" class="q-mb-md">
             <div class="text-caption q-mb-sm">Vista previa:</div>
             <q-img
               :src="paymentCapture"
+              alt="Vista previa de la captura del pago"
+              fit="contain"
               style="max-width: 200px; max-height: 200px"
               class="rounded-borders"
+            />
+          </div>
+
+          <!-- Campo de comentarios -->
+          <div v-if="selectedPaymentMethod">
+            <div class="text-subtitle2 q-mb-sm">Comentarios (Opcional)</div>
+            <q-input
+              v-model="paymentComment"
+              type="textarea"
+              filled
+              rows="3"
+              placeholder="Escribe aquí cualquier comentario adicional sobre el pago…"
+              aria-label="Comentarios (opcional)"
+              counter
+              maxlength="500"
             />
           </div>
         </q-card-section>
@@ -379,7 +457,7 @@
             label="Enviar a Revisión"
             color="primary"
             @click="submitPaymentVerification"
-            :disable="!selectedPaymentMethod || !captureFile"
+            :disable="processingCapture"
           />
         </q-card-actions>
       </q-card>
@@ -388,3 +466,29 @@
 </template>
 
 <script src="./index.js" />
+
+<style scoped>
+.payment-card {
+  width: 100%;
+  max-width: 480px;
+}
+
+.payment-body {
+  max-height: 65vh;
+  overscroll-behavior: contain;
+}
+
+/* White background so the QR can be scanned in dark mode too */
+.qr-box {
+  max-width: 260px;
+  margin: 0 auto;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+}
+
+.amount {
+  font-variant-numeric: tabular-nums;
+}
+</style>

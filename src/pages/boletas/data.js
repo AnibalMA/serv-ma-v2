@@ -18,8 +18,10 @@ export default function () {
     selectedBoleta: null,
     paymentOptions: [],
     selectedPaymentMethod: null,
-    paymentCapture: null,
+    paymentCapture: null, // Captura ya comprimida (data URL), lista para enviar
     captureFile: null,
+    processingCapture: false, // true mientras se achica la captura
+    operationNumber: "", // Número de operación de Yape
     paymentComment: "", // Campo para comentarios del pago
     arr_boletas_col: [
       {

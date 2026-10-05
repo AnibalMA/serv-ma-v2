@@ -2,6 +2,12 @@ import { useUserStore } from "src/stores/user";
 import { serviceHttp } from "../../utils/serviceHttp";
 import { formatMoney } from "src/utils/format";
 import { copyAndNotify } from "src/utils/clipboard";
+import { compressImage } from "src/utils/compressImage";
+import {
+  MAX_CAPTURE_SIZE,
+  cleanOperationNumber,
+  isValidOperationNumber,
+} from "./helpers";
 // import { date } from "quasar";
 export default {
   formatMoney,
@@ -205,6 +211,8 @@ export default {
     this.selectedPaymentMethod = null;
     this.paymentCapture = null;
     this.captureFile = null;
+    this.processingCapture = false;
+    this.operationNumber = "";
     this.paymentComment = "";
 
     // Obtener opciones de pago
@@ -213,19 +221,47 @@ export default {
     this.showPaymentModal = true;
   },
 
-  // Método para manejar la selección de archivo
-  onFileSelected(file) {
+  // Achica la captura antes de enviarla. paymentCapture solo tiene valor
+  // cuando la imagen ya está lista (se usa para la vista previa y para enviar).
+  async onFileSelected(file) {
     this.captureFile = file;
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.paymentCapture = e.target.result;
-      };
-      reader.readAsDataURL(file);
+    this.paymentCapture = null;
+    this.processingCapture = false;
+    if (!file) return;
+
+    if (file.size > MAX_CAPTURE_SIZE) {
+      this.captureFile = null;
+      this.$q.notify({
+        color: "orange-8",
+        textColor: "white",
+        icon: "warning",
+        message: "La imagen pesa más de 15 MB. Elige una captura más liviana.",
+      });
+      return;
     }
+
+    this.processingCapture = true;
+    try {
+      const dataUrl = await compressImage(file);
+      // The user may have picked another image while this one was loading
+      if (this.captureFile !== file) return;
+      this.paymentCapture = dataUrl;
+    } catch (error) {
+      if (this.captureFile !== file) return;
+      console.error("Error al leer la captura:", error);
+      this.captureFile = null;
+      this.$q.notify({
+        color: "red-8",
+        textColor: "white",
+        icon: "error",
+        message: "No se pudo leer la imagen. Sube una captura en JPG o PNG.",
+      });
+    }
+    this.processingCapture = false;
   },
 
   // Método para enviar verificación de pago
+  // (aquí se revisa todo lo que falta; el botón solo se bloquea mientras carga la captura)
   async submitPaymentVerification() {
     if (!this.selectedPaymentMethod) {
       this.$q.notify({
@@ -237,7 +273,7 @@ export default {
       return;
     }
 
-    if (!this.captureFile) {
+    if (!this.captureFile || !this.paymentCapture) {
       this.$q.notify({
         color: "orange-8",
         textColor: "white",
@@ -247,15 +283,26 @@ export default {
       return;
     }
 
-    this.$q.loading.show({ message: "Enviando verificación de pago..." });
+    if (!isValidOperationNumber(this.operationNumber)) {
+      this.$q.notify({
+        color: "orange-8",
+        textColor: "white",
+        icon: "warning",
+        message: "Escribe el número de operación (de 4 a 20 dígitos)",
+      });
+      return;
+    }
+
+    this.$q.loading.show({ message: "Enviando verificación de pago…" });
 
     try {
       // Preparar datos en el formato que espera el backend
       const requestData = {
         id_boleta: this.selectedBoleta.id,
         id_payment_opc: this.selectedPaymentMethod.id,
-        screenshot_data: this.paymentCapture, // Base64 string
+        screenshot_data: this.paymentCapture, // Base64 string (ya comprimida)
         comments: this.paymentComment.trim() || null,
+        nro_operacion: cleanOperationNumber(this.operationNumber),
       };
 
       const { data } = await serviceHttp.post(
@@ -312,6 +359,8 @@ export default {
     this.selectedPaymentMethod = null;
     this.paymentCapture = null;
     this.captureFile = null;
+    this.processingCapture = false;
+    this.operationNumber = "";
     this.paymentComment = "";
   },
 
