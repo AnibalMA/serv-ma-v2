@@ -43,6 +43,16 @@ describe("formatDate", () => {
     expect(formatDate("2024-05-01T15:30:00-05:00")).toBe("01/05/2024");
   });
 
+  it("keeps the day of DATE columns sent as UTC midnight (backend on Heroku runs in UTC)", () => {
+    expect(formatDate("2024-05-01T00:00:00.000Z")).toBe("01/05/2024");
+    expect(formatDate("2024-05-01T00:00:00Z")).toBe("01/05/2024");
+  });
+
+  it("shows other UTC times in Lima time", () => {
+    // 03:30 UTC is 22:30 of the previous day in Lima
+    expect(formatDate("2024-05-01T03:30:00.000Z")).toBe("30/04/2024");
+  });
+
   it("formats Date objects", () => {
     expect(formatDate(new Date(2024, 0, 9))).toBe("09/01/2024");
   });
