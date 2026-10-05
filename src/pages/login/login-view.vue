@@ -133,6 +133,8 @@
               bg-color="primary"
               v-model="email"
               label="Correo electrónico"
+              autocomplete="username"
+              spellcheck="false"
               :disable="!serverStatus.isOnline || serverStatus.isInMaintenance"
             ></q-input>
             <q-input
@@ -145,9 +147,27 @@
               v-model="password"
               type="password"
               label="Contraseña"
+              autocomplete="current-password"
               @keyup.enter="login()"
               :disable="!serverStatus.isOnline || serverStatus.isInMaintenance"
             ></q-input>
+          </q-card-section>
+
+          <!-- Verificación anti-robots (Cloudflare Turnstile) -->
+          <q-card-section v-if="isTurnstileEnabled" class="q-px-none q-py-none">
+            <div
+              v-show="!turnstileError"
+              ref="turnstile"
+              class="row justify-center"
+              style="min-height: 65px"
+            ></div>
+            <div
+              v-if="turnstileError"
+              role="alert"
+              class="text-caption text-red-3 text-center q-px-md"
+            >
+              {{ turnstileError }}
+            </div>
           </q-card-section>
 
           <q-card-section>
@@ -162,16 +182,22 @@
               class="full-width"
               :disable="isLoginDisabled"
             ></q-btn>
-            <div
-              v-if="
-                !isFormValid &&
-                serverStatus.isOnline &&
-                !serverStatus.isInMaintenance
-              "
-              class="text-center q-mt-sm text-grey-5 text-caption"
+            <template
+              v-if="serverStatus.isOnline && !serverStatus.isInMaintenance"
             >
-              Completa los campos para continuar
-            </div>
+              <div
+                v-if="!isFormValid"
+                class="text-center q-mt-sm text-grey-5 text-caption"
+              >
+                Completa los campos para continuar
+              </div>
+              <div
+                v-else-if="isWaitingForTurnstile"
+                class="text-center q-mt-sm text-grey-5 text-caption"
+              >
+                Completa la verificación anti-robots
+              </div>
+            </template>
           </q-card-section>
 
           <q-card-section class="text-center">
@@ -184,6 +210,35 @@
               @click="forgotPassword()"
               :disable="!serverStatus.isOnline || serverStatus.isInMaintenance"
             />
+          </q-card-section>
+
+          <!-- Inicio de sesión con Google (v-show: el botón se dibuja al montar) -->
+          <q-card-section
+            v-if="isGoogleEnabled"
+            v-show="serverStatus.isOnline && !serverStatus.isInMaintenance"
+            class="q-pt-none"
+          >
+            <div
+              class="row items-center no-wrap text-grey-4 q-mb-md"
+              aria-hidden="true"
+            >
+              <q-separator dark class="col" />
+              <span class="q-px-sm">o</span>
+              <q-separator dark class="col" />
+            </div>
+            <div
+              v-show="!googleError"
+              ref="googleButton"
+              class="row justify-center"
+              style="min-height: 44px"
+            ></div>
+            <div
+              v-if="googleError"
+              role="alert"
+              class="text-caption text-grey-4 text-center"
+            >
+              {{ googleError }}
+            </div>
           </q-card-section>
         </q-card>
       </q-page>

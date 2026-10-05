@@ -1,61 +1,125 @@
 import { useUserStore } from "src/stores/user";
 import { serviceHttp } from "../../utils/serviceHttp";
+import { renderGoogleButton } from "src/utils/googleSignIn";
+import { renderTurnstile, resetTurnstile } from "src/utils/turnstile";
 
 export default {
-  login() {
-    this.$q.loading.show();
+  async login() {
+    // Pressing Enter also calls this, so respect the disabled button
+    if (this.isLoginDisabled) return;
 
-    serviceHttp
-      .post("/loginUser", {
+    this.isLoggingIn = true;
+    this.$q.loading.show();
+    try {
+      const { data } = await serviceHttp.post("/loginUser", {
         sEmail: this.email,
         sPwd: this.password,
-      })
-      .then(({ data }) => {
-        this.$q.loading.hide();
-
-        if (data?.ok) {
-          if (data?.data?.bFirstTime) {
-            this.$q.notify({
-              color: "warning",
-              textColor: "white",
-              icon: "warning",
-              message: "Por favor, cambia tu contraseña inicial",
-            });
-            this.$router.replace("/reset-password/" + data?.data?.sTokenPwd);
-          } else {
-            this.$q.notify({
-              color: "green-8",
-              textColor: "white",
-              icon: "check_circle",
-              message: data?.sMessage,
-            });
-
-            useUserStore().setUser(data?.data || {});
-            this.$router.replace("/dashboard");
-          }
-        } else {
-          // Wrong credentials come back as 200 with ok: false
-          this.$q.notify({
-            color: "red-8",
-            textColor: "white",
-            icon: "error",
-            message:
-              data?.sMessage || "No se pudo iniciar sesión. Intenta nuevamente.",
-          });
-        }
-      })
-      .catch((error) => {
-        this.$q.loading.hide();
-        console.error(error);
-        this.$q.notify({
-          color: "red-8",
-          textColor: "white",
-          icon: "error",
-          message:
-            error.response?.data?.sMessage ||
-            "No se pudo iniciar sesión. Intenta nuevamente.",
-        });
+        sTurnstileToken: this.turnstileToken,
       });
+
+      if (data?.ok) {
+        this.onLoginSuccess(data);
+      } else {
+        // Wrong credentials come back as 200 with ok: false
+        this.onLoginError(data?.sMessage);
+        this.getNewTurnstileToken();
+      }
+    } catch (error) {
+      console.error(error);
+      this.onLoginError(error.response?.data?.sMessage);
+      this.getNewTurnstileToken();
+    } finally {
+      this.isLoggingIn = false;
+      this.$q.loading.hide();
+    }
+  },
+  async loginWithGoogle(credential) {
+    if (this.isLoggingIn) return;
+
+    this.isLoggingIn = true;
+    this.$q.loading.show();
+    try {
+      const { data } = await serviceHttp.post("/loginGoogle", { credential });
+
+      if (data?.ok) {
+        this.onLoginSuccess(data);
+      } else {
+        this.onLoginError(data?.sMessage);
+      }
+    } catch (error) {
+      console.error(error);
+      this.onLoginError(error.response?.data?.sMessage);
+    } finally {
+      this.isLoggingIn = false;
+      this.$q.loading.hide();
+    }
+  },
+  // Same steps for the password login and the Google login
+  onLoginSuccess(data) {
+    if (data?.data?.bFirstTime) {
+      this.$q.notify({
+        color: "warning",
+        textColor: "white",
+        icon: "warning",
+        message: "Por favor, cambia tu contraseña inicial",
+      });
+      this.$router.replace("/reset-password/" + data?.data?.sTokenPwd);
+    } else {
+      this.$q.notify({
+        color: "green-8",
+        textColor: "white",
+        icon: "check_circle",
+        message: data?.sMessage,
+      });
+
+      useUserStore().setUser(data?.data || {});
+      this.$router.replace("/dashboard");
+    }
+  },
+  onLoginError(message) {
+    this.$q.notify({
+      color: "red-8",
+      textColor: "white",
+      icon: "error",
+      message: message || "No se pudo iniciar sesión. Intenta nuevamente.",
+    });
+  },
+  async setupTurnstile() {
+    if (!this.isTurnstileEnabled) return;
+
+    try {
+      this.turnstileWidgetId = await renderTurnstile(
+        this.$refs.turnstile,
+        (token) => {
+          this.turnstileToken = token;
+        }
+      );
+    } catch (error) {
+      console.error(error);
+      this.turnstileError =
+        "No se pudo cargar la verificación anti-robots. Recarga la página.";
+    }
+  },
+  // Each Turnstile token works only once
+  getNewTurnstileToken() {
+    this.turnstileToken = "";
+    resetTurnstile(this.turnstileWidgetId);
+  },
+  async setupGoogleButton() {
+    if (!this.isGoogleEnabled) return;
+
+    try {
+      await renderGoogleButton(
+        this.$refs.googleButton,
+        (credential) => this.loginWithGoogle(credential),
+        { text: "continue_with" }
+      );
+    } catch (error) {
+      // e.g. an ad-blocker; the password login still works
+      console.error(error);
+      this.googleError =
+        "No se pudo cargar el botón de Google. Puedes ingresar con tu correo y contraseña.";
+    }
   },
   forgotPassword() {
     this.$q

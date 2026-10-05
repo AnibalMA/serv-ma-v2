@@ -67,4 +67,10 @@ describe("routes + guard", () => {
   it("sends logged-in users away from login", async () => {
     expect(await navigate("/login", user)).toBe("/dashboard");
   });
+
+  it("opens Mi perfil for any logged-in user, but not for guests", async () => {
+    expect(await navigate("/perfil", user)).toBe("/perfil");
+    expect(await navigate("/perfil", admin)).toBe("/perfil");
+    expect(await navigate("/perfil", null)).toBe("/login");
+  });
 });

@@ -66,6 +66,15 @@ describe("serviceHttp", () => {
     expect(logout).not.toHaveBeenCalled();
   });
 
+  it("does not log out on 401 from the Google login request", async () => {
+    serviceHttp.defaults.adapter = respondWith(401);
+
+    await expect(serviceHttp.post("/loginGoogle", {})).rejects.toBeInstanceOf(
+      AxiosError
+    );
+    expect(logout).not.toHaveBeenCalled();
+  });
+
   it("does not crash when there is no response (network error)", async () => {
     serviceHttp.defaults.adapter = networkError;
 

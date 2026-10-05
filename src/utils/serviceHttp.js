@@ -8,11 +8,13 @@ const serviceHttp = axios.create({
   withCredentials: true,
 });
 
-// A 401 from the login request means "wrong credentials", not "session expired"
+// A 401 from a login request means "wrong credentials", not "session expired"
 function isSessionExpired(error) {
   const status = error?.response?.status;
   const url = error?.config?.url || "";
-  return status === 401 && !url.includes("/loginUser");
+  const isLoginRequest =
+    url.includes("/loginUser") || url.includes("/loginGoogle");
+  return status === 401 && !isLoginRequest;
 }
 
 function goToLogin() {

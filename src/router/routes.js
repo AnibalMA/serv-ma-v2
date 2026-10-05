@@ -61,6 +61,11 @@ const routes = [
         component: () => import("pages/admin-payments/admin-payments-view.vue"),
         meta: { roles: ADMIN_ROLES },
       },
+      {
+        name: "perfil",
+        path: "perfil",
+        component: () => import("pages/perfil/perfil-view.vue"),
+      },
     ],
   },
   {
