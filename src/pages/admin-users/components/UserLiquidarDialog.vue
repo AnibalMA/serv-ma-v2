@@ -32,15 +32,14 @@
                 <q-item-section side>
                   <q-badge
                     color="green-8"
-                    :label="`S/. ${Number(b.monto_facturado || 0).toFixed(2)}`"
+                    :label="formatMoney(b.monto_facturado)"
                   />
                 </q-item-section>
               </q-item>
             </q-list>
             <div class="q-mt-sm text-right">
               <span class="text-subtitle2 text-weight-bold">
-                Total a liquidar: S/.
-                {{ total.toFixed(2) }}
+                Total a liquidar: {{ formatMoney(total) }}
               </span>
             </div>
           </div>
@@ -68,6 +67,8 @@
 </template>
 
 <script>
+import { formatMoney } from "src/utils/format";
+
 export default {
   props: {
     modelValue: Boolean,
@@ -83,6 +84,9 @@ export default {
         0
       );
     },
+  },
+  methods: {
+    formatMoney,
   },
 };
 </script>

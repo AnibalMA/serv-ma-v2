@@ -44,7 +44,7 @@
               dense
               :loading="loadingMasterData"
               :rules="[(v) => !!v || 'Plataforma requerida']"
-              @update:model-value="$emit('platform-change', $event)"
+              @update:model-value="onPlatformChange"
             />
           </div>
           <div class="col-12 col-md-6">
@@ -153,11 +153,11 @@ export default {
     selectedUser: Object,
     userOptions: Array,
     platformOptions: Array,
-    filteredGroupOptions: Array,
+    groupOptions: Array,
+    plataformaGrupos: Array,
     loadingMasterData: Boolean,
-    grupoEmail: String,
   },
-  emits: ["update:modelValue", "cancel", "save", "platform-change"],
+  emits: ["update:modelValue", "cancel", "save"],
   data() {
     return {
       form: {
@@ -171,14 +171,54 @@ export default {
       },
     };
   },
+  computed: {
+    // Groups that belong to the selected platform
+    filteredGroupOptions() {
+      if (!this.form.id_plataforma) return [];
+      const idsGrupos = this.plataformaGrupos
+        .filter(
+          (pg) => String(pg.id_plataforma) === String(this.form.id_plataforma)
+        )
+        .map((pg) => pg.id_grupo);
+      return this.groupOptions.filter((g) => idsGrupos.includes(g.value));
+    },
+    grupoEmail() {
+      const { id_plataforma, id_grupo } = this.form;
+      if (!id_plataforma || !id_grupo) return null;
+      const pg = this.plataformaGrupos.find(
+        (p) =>
+          String(p.id_plataforma) === String(id_plataforma) &&
+          String(p.id_grupo) === String(id_grupo)
+      );
+      return pg?.correo_acc || null;
+    },
+  },
   watch: {
-    selectedUser: {
-      immediate: true,
-      handler(user) {
-        if (user?.id) {
-          this.form.id_usuario = user.id;
-        }
-      },
+    // Start with a clean form every time the dialog opens
+    modelValue(isOpen) {
+      if (isOpen) this.resetForm();
+    },
+  },
+  methods: {
+    resetForm() {
+      this.form = {
+        id_usuario: this.selectedUser?.id || null,
+        id_grupo: null,
+        id_plataforma: null,
+        dia_pago: null,
+        monto: null,
+        desc_perfil: "",
+        pin_perfil: "",
+      };
+    },
+    onPlatformChange(idPlataforma) {
+      this.form.id_grupo = null;
+      const platform = this.platformOptions.find(
+        (p) => String(p.value) === String(idPlataforma)
+      );
+      if (platform?.monto !== null && platform?.monto !== undefined) {
+        this.form.monto = Number(platform.monto);
+      }
     },
   },
 };

@@ -1,86 +1,70 @@
 import DOMPurify from "dompurify";
+import { copyAndNotify } from "src/utils/clipboard";
 
-const HANDLERS = {
-  "window.open"(url, target) {
-    window.open(String(url), String(target || "_blank"));
-  },
-  copiarAlPortapapeles(text) {
-    navigator.clipboard.writeText(String(text));
-  },
-};
+// The backend only sends these onclick shapes. We never run their code:
+// we read the data we need and turn it into safe data-* attributes.
+const COPY_PREVIOUS =
+  /writeText\(\s*\w+\.previousElementSibling\.innerText\s*\)/;
+const COPY_CODE = /\bconst\s+code\s*=\s*(['"])(.*?)\1/;
+const COPY_TEXT = /^\s*copiarAlPortapapeles\(\s*(['"])(.*?)\1\s*\)/;
+const OPEN_URL = /^\s*window\.open\(\s*(['"])(.*?)\1/;
+
+function isHttps(url) {
+  return /^https:\/\//i.test(url || "");
+}
+
+// Returns the data-* attributes that replace an onclick, or null to drop it
+function onclickToAttributes(code) {
+  if (COPY_PREVIOUS.test(code)) {
+    return { "data-action": "copy-previous" };
+  }
+
+  const copy = code.match(COPY_CODE) || code.match(COPY_TEXT);
+  if (copy) {
+    return { "data-action": "copy", "data-text": copy[2] };
+  }
+
+  const open = code.match(OPEN_URL);
+  if (open && isHttps(open[2])) {
+    return { "data-action": "open", "data-url": open[2] };
+  }
+
+  console.warn("onclick ignorado:", code);
+  return null;
+}
+
+function replaceOnclick(element) {
+  const attributes = onclickToAttributes(element.getAttribute("onclick"));
+  element.removeAttribute("onclick");
+
+  if (!attributes) return;
+  // setAttribute escapes the values, so quotes can't break out of them
+  Object.entries(attributes).forEach(([name, value]) => {
+    element.setAttribute(name, value);
+  });
+}
 
 export function sanitize(html) {
-  const onclickValues = [];
-  const encoded = html.replace(
-    /\bonclick\s*=\s*(?:"([^"]*)"|'([^']*)')/gi,
-    (match, dq, sq) => {
-      const id = onclickValues.length;
-      onclickValues.push(dq ?? sq);
-      return `data-onclick-id="${id}"`;
-    }
-  );
+  if (!html) return "";
 
-  let sanitized = DOMPurify.sanitize(encoded, {
-    ALLOW_UNKNOWN_PROTOCOLS: true,
-  });
+  // A <template> parses the HTML without running scripts or handlers
+  const template = document.createElement("template");
+  template.innerHTML = html;
+  template.content.querySelectorAll("[onclick]").forEach(replaceOnclick);
 
-  sanitized = sanitized.replace(
-    /data-onclick-id="(\d+)"/g,
-    (_, id) => `onclick="${onclickValues[id]}"`
-  );
-
-  return sanitized;
+  return DOMPurify.sanitize(template.innerHTML);
 }
 
-function parseArgs(raw) {
-  if (!raw || !raw.trim()) return [];
-  const args = [];
-  let cur = "";
-  let inStr = false;
-  let quote = "";
-  let depth = 0;
-  for (const ch of raw.trim()) {
-    if (inStr) {
-      if (ch === quote) {
-        inStr = false;
-        const trimmed = cur.trim();
-        if (trimmed) args.push(coerce(trimmed));
-        cur = "";
-      } else if (ch === "\\") {
-        cur += ch;
-      } else {
-        cur += ch;
-      }
-    } else if (ch === "'" || ch === '"') {
-      inStr = true;
-      quote = ch;
-      cur = "";
-    } else if (ch === "(" || ch === "[") {
-      depth++;
-      cur += ch;
-    } else if (ch === ")" || ch === "]") {
-      depth--;
-      cur += ch;
-    } else if (ch === "," && depth === 0) {
-      const trimmed = cur.trim();
-      if (trimmed) args.push(coerce(trimmed));
-      cur = "";
-    } else {
-      cur += ch;
-    }
+function runAction(element) {
+  const { action, text, url } = element.dataset;
+
+  if (action === "copy-previous") {
+    copyAndNotify(element.previousElementSibling?.innerText);
+  } else if (action === "copy") {
+    copyAndNotify(text);
+  } else if (action === "open" && isHttps(url)) {
+    window.open(url, "_blank", "noopener");
   }
-  const trimmed = cur.trim();
-  if (trimmed) args.push(coerce(trimmed));
-  return args;
-}
-
-function coerce(val) {
-  if (val === "true") return true;
-  if (val === "false") return false;
-  if (val === "null") return null;
-  if (val === "undefined") return undefined;
-  if (!isNaN(val) && val !== "" && val.trim() !== "") return Number(val);
-  return val;
 }
 
 let _bound = false;
@@ -89,40 +73,11 @@ export function bindSafeEvents() {
   if (_bound) return;
   _bound = true;
 
-  document.addEventListener("click", function (e) {
-    const el = e.target.closest("[onclick]");
-    if (!el) return;
+  document.addEventListener("click", (e) => {
+    const element = e.target.closest("[data-action]");
+    if (!element) return;
 
-    const raw = el.getAttribute("onclick").trim();
-    el.removeAttribute("onclick");
-
-    for (const [name, fn] of Object.entries(HANDLERS)) {
-      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const m = raw.match(new RegExp(`^${escaped}\\(([\\s\\S]*)\\)\\s*$`));
-      if (m) {
-        const args = parseArgs(m[1]);
-        fn(...args);
-        e.preventDefault();
-        return;
-      }
-    }
-
-    const iife = raw.match(
-      /^\(function\s*\(\s*(\w+)\s*\)\s*\{([\s\S]*)\}\s*\)\(\s*this\s*\)\s*$/
-    );
-    if (iife) {
-      try {
-        const paramName = iife[1];
-        const body = iife[2];
-        const fn = new Function(paramName, body);
-        fn.call(el, el);
-      } catch (err) {
-        console.error("Error ejecutando onclick:", err);
-      }
-      e.preventDefault();
-      return;
-    }
-
-    console.warn("onclick no reconocido, ignorado:", raw);
+    e.preventDefault();
+    runAction(element);
   });
 }

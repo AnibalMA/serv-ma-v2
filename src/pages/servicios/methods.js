@@ -1,10 +1,6 @@
 // src/pages/servicios/methods.js
 import { serviceHttp } from "../../utils/serviceHttp";
-import { useMessages } from "./composables/useMessages";
-import MessageDisplay from "./components/MessageDisplay.vue";
 import { sanitize } from "src/utils/sanitize";
-
-const { messages, isTyping, addMessage, clearMessages } = useMessages();
 
 // Variable para almacenar la referencia al socket del layout
 let socketInstance = null;
@@ -65,8 +61,6 @@ export default {
             icon: "check_circle",
             message: data?.sMessage,
           });
-
-          console.log(this.arr_platforms_u);
         } else {
           this.$q.notify({
             color: "red-8",
@@ -77,7 +71,14 @@ export default {
         }
       })
       .catch((error) => {
-        console.log(error);
+        this.$q.loading.hide();
+        console.error(error);
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message: "Error al cargar tus plataformas",
+        });
       });
   },
   getServicesByPlatform(platform) {
@@ -113,7 +114,14 @@ export default {
         }
       })
       .catch((error) => {
-        console.log(error);
+        this.$q.loading.hide();
+        console.error(error);
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message: "Error al cargar las opciones de la plataforma",
+        });
       });
   },
   getHeaderHtml(aHeaders) {
@@ -359,15 +367,5 @@ export default {
     if (content.includes("Procesando")) {
       await new Promise((resolve) => setTimeout(resolve, 1500));
     }
-  },
-  copiarAlPortapapeles(sText) {
-    navigator.clipboard.writeText(sText).then(() => {
-      this.$q.notify({
-        message: "Texto copiado",
-        color: "positive",
-        icon: "check",
-        position: "top",
-      });
-    });
   },
 };

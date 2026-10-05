@@ -52,7 +52,7 @@
           >
             <q-input
               v-model.number="form.monto"
-              label="Monto total del descuento (S/.)"
+              label="Monto total del descuento (S/)"
               :hint="
                 form.tipo_desc === 'COMBO'
                   ? 'Saldo total disponible'
@@ -72,7 +72,7 @@
           >
             <q-input
               v-model.number="form.factor"
-              label="Descuento por boleta (S/.)"
+              label="Descuento por boleta (S/)"
               hint="Monto que se descuenta en cada boleta"
               outlined
               dense
@@ -128,12 +128,20 @@ export default {
     };
   },
   watch: {
-    selectedUser: {
-      immediate: true,
-      handler(u) {
-        if (!u?.id) return;
-        this.form.id_usuario = u.id;
-      },
+    // Start with a clean form every time the dialog opens
+    modelValue(isOpen) {
+      if (isOpen) this.resetForm();
+    },
+  },
+  methods: {
+    resetForm() {
+      this.form = {
+        id_usuario: this.selectedUser?.id || null,
+        monto: 0,
+        factor: 0,
+        tipo_desc: "NORMAL",
+        descripcion: "",
+      };
     },
   },
 };

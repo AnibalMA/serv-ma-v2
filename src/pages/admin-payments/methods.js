@@ -1,13 +1,12 @@
 import { serviceHttp } from "../../utils/serviceHttp";
 import { useUserStore } from "stores/user";
-
-const ADMIN_ROLES = ["ROL_ADM", "ROL_ADM_SU"];
+import { isAdmin } from "src/utils/roles";
+import { formatMoney } from "src/utils/format";
 
 export default {
   // ── Seguridad ──────────────────────────────────────────────────────────────
   checkAdminAccess() {
-    const user = useUserStore().user;
-    if (!user || !ADMIN_ROLES.includes(user.rol)) {
+    if (!isAdmin(useUserStore().user)) {
       this.$q.notify({
         color: "red-8",
         textColor: "white",
@@ -178,7 +177,7 @@ export default {
 
   // ── Utilidades ─────────────────────────────────────────────────────────────
   formatMonto(val) {
-    return `S/. ${parseFloat(val || 0).toFixed(2)}`;
+    return formatMoney(val);
   },
 
   formatFecha(val) {

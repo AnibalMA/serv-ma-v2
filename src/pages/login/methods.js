@@ -34,17 +34,27 @@ export default {
             this.$router.replace("/dashboard");
           }
         } else {
+          // Wrong credentials come back as 200 with ok: false
           this.$q.notify({
             color: "red-8",
             textColor: "white",
             icon: "error",
-            message: data?.sMessage,
+            message:
+              data?.sMessage || "No se pudo iniciar sesión. Intenta nuevamente.",
           });
         }
       })
       .catch((error) => {
-        console.log(error);
         this.$q.loading.hide();
+        console.error(error);
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message:
+            error.response?.data?.sMessage ||
+            "No se pudo iniciar sesión. Intenta nuevamente.",
+        });
       });
   },
   forgotPassword() {

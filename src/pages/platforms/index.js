@@ -1,4 +1,5 @@
 import { serviceHttp } from "../../utils/serviceHttp";
+import { copyAndNotify } from "src/utils/clipboard";
 
 export default {
   data() {
@@ -150,27 +151,7 @@ export default {
       // text += `\n━━━━━━━━━━━━━━━━━━━`;
 
       // Copiar al portapapeles
-      navigator.clipboard
-        .writeText(text)
-        .then(() => {
-          this.$q.notify({
-            color: "green-8",
-            textColor: "white",
-            icon: "content_copy",
-            message: "Información del perfil copiada",
-            position: "top",
-          });
-        })
-        .catch((err) => {
-          console.error("Error al copiar:", err);
-          this.$q.notify({
-            color: "red-8",
-            textColor: "white",
-            icon: "error",
-            message: "Error al copiar la información",
-            position: "top",
-          });
-        });
+      copyAndNotify(text, "Información del perfil copiada");
     },
   },
 };

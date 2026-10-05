@@ -122,5 +122,25 @@ export default {
       },
     };
   },
+  watch: {
+    // Start with a clean form every time the dialog opens
+    modelValue(isOpen) {
+      if (isOpen) this.resetForm();
+    },
+  },
+  methods: {
+    resetForm() {
+      this.form = {
+        nom_usuario: "",
+        ape_usuario: "",
+        email_principal_usuario: "",
+        celular_principal_usuario: "",
+        usernameL: "",
+        passL: "",
+        num_contacto_prov: "",
+        num_opc: "1",
+      };
+    },
+  },
 };
 </script>

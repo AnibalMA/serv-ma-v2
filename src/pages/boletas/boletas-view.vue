@@ -10,7 +10,7 @@
         row-key="cod_boleta"
         :rows-per-page-options="['7']"
         :visible-columns="
-          optBoleta == 'Pendientes'
+          optBoleta === 'Pending'
             ? [
                 'cod_boleta',
                 'fecha_emision',
@@ -33,6 +33,8 @@
           <q-select
             v-model="optBoleta"
             :options="options"
+            emit-value
+            map-options
             label="Mostrar"
             :dense="true"
             :borderless="true"
@@ -229,11 +231,7 @@
             />
             <q-chip
               :label="`Monto: ${
-                selectedBoleta
-                  ? `S/.${(selectedBoleta.monto_facturado * 1)
-                      .toFixed(2)
-                      .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`
-                  : ''
+                selectedBoleta ? formatMoney(selectedBoleta.monto_facturado) : ''
               }`"
               color="green"
               text-color="white"

@@ -1,6 +1,5 @@
 // src/pages/dox/methods.js
 import { serviceHttp } from "../../utils/serviceHttp";
-import axios from "axios";
 
 export default {
   /**
@@ -191,16 +190,10 @@ export default {
           formData.append("photo", this.photoFile);
         }
 
-        // Usar axios directo para multipart (no poner Content-Type, el browser lo pone con boundary)
-        response = await axios.post(
-          `${process.env.API_BACKEND}dox/execute`,
-          formData,
-          {
-            withCredentials: true,
-            timeout: 180000,
-          }
-        );
-        response = { data: response.data };
+        // Sin Content-Type: el browser lo pone con el boundary del multipart
+        response = await serviceHttp.post("/dox/execute", formData, {
+          timeout: 180000,
+        });
       } else {
         // Envío JSON estándar
         response = await serviceHttp.post("/dox/execute", {

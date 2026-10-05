@@ -19,14 +19,14 @@
               }}</q-item-label>
               <q-item-label caption>{{ d.desc_nota }}</q-item-label>
               <q-item-label caption>
-                Por boleta: S/. {{ Number(d.factor_desc || 0).toFixed(2) }}
+                Por boleta: {{ formatMoney(d.factor_desc) }}
                 &nbsp;|&nbsp; Tipo: {{ d.tipo_desc || "-" }} &nbsp;|&nbsp; ID: {{ d.id }}
               </q-item-label>
             </q-item-section>
             <q-item-section side>
               <q-badge
                 color="green"
-                :label="`S/. ${Number(d.monto_descuento || 0).toFixed(2)}`"
+                :label="formatMoney(d.monto_descuento)"
               />
             </q-item-section>
           </q-item>
@@ -44,6 +44,8 @@
 </template>
 
 <script>
+import { formatMoney } from "src/utils/format";
+
 export default {
   props: {
     modelValue: Boolean,
@@ -52,5 +54,8 @@ export default {
     loading: Boolean,
   },
   emits: ["update:modelValue"],
+  methods: {
+    formatMoney,
+  },
 };
 </script>

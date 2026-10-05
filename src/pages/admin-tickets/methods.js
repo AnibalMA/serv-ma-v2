@@ -1,13 +1,19 @@
 import { serviceHttp } from "../../utils/serviceHttp";
 import { useUserStore } from "stores/user";
 import { date } from "quasar";
+import { isAdmin } from "src/utils/roles";
+import { formatMoney } from "src/utils/format";
 
-const ADMIN_ROLES = ["ROL_ADM", "ROL_ADM_SU"];
+const SERVICE_ACTIONS = [
+  "CAMBIAR_PIN",
+  "CAMBIAR_PERFIL",
+  "BAJA_SERVICIO",
+  "CAMBIAR_PAYDAY",
+];
 
 export default {
   checkAdminAccess() {
-    const user = useUserStore().user;
-    if (!user || !ADMIN_ROLES.includes(user.rol)) {
+    if (!isAdmin(useUserStore().user)) {
       this.$q.notify({
         color: "red-8",
         textColor: "white",
@@ -98,21 +104,21 @@ export default {
   },
 
   async onUserSelected(user) {
+    // A service picked for the previous user must not be used for this one
+    this.selectedService = null;
     if (!user) {
       this.userServices = [];
       return;
     }
     // Cargar servicios del usuario si se necesitan
-    if (
-      [
-        "CAMBIAR_PIN",
-        "CAMBIAR_PERFIL",
-        "BAJA_SERVICIO",
-        "CAMBIAR_PAYDAY",
-      ].includes(this.ticketForm.tipo?.value)
-    ) {
+    if (this.needsService(this.ticketForm.tipo)) {
       await this.loadUserServices(user);
     }
+  },
+
+  // Actions that work on one of the user's services
+  needsService(tipo) {
+    return SERVICE_ACTIONS.includes(tipo);
   },
 
   async loadUserServices(user) {
@@ -122,16 +128,29 @@ export default {
         `/user_servicios/${user.value || user.id}`
       );
       if (data?.ok) {
-        this.userServices = (data.data || []).map((s) => ({
-          ...s,
-          label: `${
-            s.desc_plataforma || s.DescPlataforma || s.Plataforma || "Servicio"
-          } - ${s.desc_perfil || s.DescPerfil || "Sin perfil"}`,
-          value: s.id_usuario_servicio || s.IdUsuarioServicio || s.id || s.Id,
-        }));
+        this.userServices = (data.data || []).map((s) => {
+          const descPerfil = s.desc_perfil || s.DescPerfil || s.Perfil || "";
+          return {
+            ...s,
+            desc_perfil: descPerfil,
+            label: `${
+              s.desc_plataforma ||
+              s.DescPlataforma ||
+              s.Plataforma ||
+              "Servicio"
+            } - ${descPerfil || "Sin perfil"}`,
+            value: s.id_usuario_servicio || s.IdUsuarioServicio || s.id || s.Id,
+          };
+        });
       }
     } catch (error) {
       console.error(error);
+      this.$q.notify({
+        color: "red-8",
+        textColor: "white",
+        icon: "error",
+        message: "Error al cargar los servicios del usuario",
+      });
     } finally {
       this.loadingServices = false;
     }
@@ -140,7 +159,7 @@ export default {
   async executeTicket() {
     if (!this.checkAdminAccess()) return;
 
-    const tipo = this.ticketForm.tipo?.value;
+    const tipo = this.ticketForm.tipo;
     const usuario = this.ticketForm.usuario;
 
     if (!tipo || !usuario) {
@@ -153,10 +172,48 @@ export default {
       return;
     }
 
+    const missingField = this.getMissingFieldMessage(tipo);
+    if (missingField) {
+      this.$q.notify({
+        color: "orange-8",
+        textColor: "white",
+        icon: "warning",
+        message: missingField,
+      });
+      return;
+    }
+
     this.confirmMessage = this.getConfirmMessage(tipo, usuario);
     this.confirmAction = () => this.processTicket(tipo, usuario);
     this.showCreateDialog = false;
     this.showConfirmDialog = true;
+  },
+
+  // Fields the backend requires for each action ("" when everything is ok)
+  getMissingFieldMessage(tipo) {
+    const form = this.ticketForm;
+    if (tipo === "CREAR_DESCUENTO" && !(form.monto > 0)) {
+      return "El monto del descuento debe ser mayor a 0";
+    }
+    if (tipo === "CREAR_DESCUENTO" && !String(form.descripcion || "").trim()) {
+      return "Ingrese una descripción para el descuento";
+    }
+    if (this.needsService(tipo) && !this.selectedService) {
+      return "Seleccione un servicio";
+    }
+    if (tipo === "CAMBIAR_PIN" && !String(form.nuevo_pin || "").trim()) {
+      return "Ingrese el nuevo PIN";
+    }
+    if (tipo === "CAMBIAR_PERFIL" && !String(form.desc_perfil || "").trim()) {
+      return "Ingrese el nuevo nombre de perfil";
+    }
+    const diaPago = Number(form.dia_pago);
+    const isValidDay =
+      Number.isInteger(diaPago) && diaPago >= 1 && diaPago <= 31;
+    if (tipo === "CAMBIAR_PAYDAY" && !isValidDay) {
+      return "Ingrese un día de pago válido (1-31)";
+    }
+    return "";
   },
 
   getConfirmMessage(tipo, usuario) {
@@ -165,7 +222,9 @@ export default {
     }`.trim();
     const messages = {
       BAJA_USUARIO: `¿Dar de baja al usuario "${nombre}"? Se inactivarán todos sus servicios.`,
-      CREAR_DESCUENTO: `¿Crear descuento de S/. ${this.ticketForm.monto} para "${nombre}"?`,
+      CREAR_DESCUENTO: `¿Crear descuento de ${formatMoney(
+        this.ticketForm.monto
+      )} para "${nombre}"?`,
       CAMBIAR_PIN: `¿Cambiar el PIN del perfil para "${nombre}"?`,
       CAMBIAR_PERFIL: `¿Cambiar el perfil de servicio para "${nombre}"?`,
       BAJA_SERVICIO: `¿Dar de baja el servicio seleccionado de "${nombre}"?`,
@@ -189,24 +248,31 @@ export default {
           });
           break;
 
-        case "CREAR_DESCUENTO":
+        case "CREAR_DESCUENTO": {
+          // Same payload as admin-users: a NORMAL discount is applied once,
+          // so the per-boleta factor is the whole amount
+          const nota = this.ticketForm.descripcion.trim();
           result = await serviceHttp.post("/regDescuentosUser", {
             id_usuario: usuario.value || usuario.id,
-            monto: this.ticketForm.monto,
-            descripcion: this.ticketForm.descripcion,
+            monto_descuento: this.ticketForm.monto,
+            factor_desc: this.ticketForm.monto,
+            desc_nota: nota,
+            desc_nota_short: nota.substring(0, 50),
+            tipo_desc: "NORMAL",
           });
           break;
+        }
 
         case "CAMBIAR_PIN":
           if (!this.selectedService) {
             throw new Error("Seleccione un servicio");
           }
+          // The backend expects "PIN" in uppercase and always needs desc_perfil
           result = await serviceHttp.post("/change-service", {
             id_usuario_servicio:
               this.selectedService.value || this.selectedService.id,
-            desc_perfil:
-              this.ticketForm.desc_perfil || this.selectedService.desc_perfil,
-            PIN: this.ticketForm.nuevo_pin,
+            desc_perfil: this.selectedService.desc_perfil,
+            PIN: String(this.ticketForm.nuevo_pin).trim(),
           });
           break;
 
@@ -214,10 +280,11 @@ export default {
           if (!this.selectedService) {
             throw new Error("Seleccione un servicio");
           }
+          // Without "PIN" the backend keeps the current PIN
           result = await serviceHttp.post("/change-service", {
             id_usuario_servicio:
               this.selectedService.value || this.selectedService.id,
-            desc_perfil: this.ticketForm.desc_perfil,
+            desc_perfil: this.ticketForm.desc_perfil.trim(),
           });
           break;
 
@@ -262,7 +329,7 @@ export default {
         });
 
         this.saveActionToHistory({
-          tipo: this.ticketForm.tipo?.label || tipo,
+          tipo: this.getTicketTypeLabel(tipo),
           tipoValue: tipo,
           usuario: `${usuario.nom_usuario || ""} ${
             usuario.ape_usuario || ""
@@ -280,7 +347,7 @@ export default {
         });
 
         this.saveActionToHistory({
-          tipo: this.ticketForm.tipo?.label || tipo,
+          tipo: this.getTicketTypeLabel(tipo),
           tipoValue: tipo,
           usuario: `${usuario.nom_usuario || ""} ${
             usuario.ape_usuario || ""
@@ -297,7 +364,8 @@ export default {
         color: "red-8",
         textColor: "white",
         icon: "error",
-        message: error.message || "Error de conexión",
+        message:
+          error.response?.data?.sMessage || error.message || "Error de conexión",
       });
     }
   },
@@ -308,6 +376,11 @@ export default {
       this.confirmAction();
       this.confirmAction = null;
     }
+  },
+
+  getTicketTypeLabel(tipo) {
+    const found = this.ticketTypes.find((t) => t.value === tipo);
+    return found?.label || tipo;
   },
 
   getTicketTypeIcon(tipo) {

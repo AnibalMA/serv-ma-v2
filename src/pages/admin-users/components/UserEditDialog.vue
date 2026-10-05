@@ -69,18 +69,20 @@ export default {
     };
   },
   watch: {
-    user: {
-      immediate: true,
-      handler(u) {
-        if (!u) return;
-        this.form = {
-          id_usuario: u.id || null,
-          nom_usuario: u.nom_usuario || "",
-          ape_usuario: u.ape_usuario || "",
-          email_principal_usuario: u.email_principal_usuario || "",
-          celular_principal_usuario: u.celular_principal_usuario || "",
-        };
-      },
+    // Start with a clean form every time the dialog opens
+    modelValue(isOpen) {
+      if (isOpen) this.resetForm();
+    },
+  },
+  methods: {
+    resetForm() {
+      this.form = {
+        id_usuario: this.user?.id || null,
+        nom_usuario: this.user?.nom_usuario || "",
+        ape_usuario: this.user?.ape_usuario || "",
+        email_principal_usuario: this.user?.email_principal_usuario || "",
+        celular_principal_usuario: this.user?.celular_principal_usuario || "",
+      };
     },
   },
 };

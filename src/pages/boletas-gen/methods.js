@@ -5,11 +5,15 @@ export default {
   getList(sState, iUId) {
     this.$q.loading.show();
 
+    // An old answer arrives when the admin already picked another user or
+    // filter. It is ignored: the newer request hides the loading.
+    const isOld = () =>
+      iUId !== this.optUser?.value || sState !== this.optBoleta;
+
     serviceHttp
       .get(`/getBoleta${iUId ? "/" + iUId : ""}?bEstado=${sState}`)
       .then(({ data }) => {
-        console.log(data);
-
+        if (isOld()) return;
         this.$q.loading.hide();
 
         this.arr_boletas = data?.data || [];
@@ -22,7 +26,6 @@ export default {
             message: data?.sMessage,
           });
 
-          console.log(this.arr_boletas);
           // useUserStore().setUser(data?.data || {});
 
           // this.$router.replace("/dashboard");
@@ -36,7 +39,15 @@ export default {
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
+        if (isOld()) return;
+        this.$q.loading.hide();
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message: "Error al cargar las boletas",
+        });
       });
 
     // console.log("Iniciando sesión...");
@@ -47,8 +58,6 @@ export default {
     serviceHttp
       .get(`/users`)
       .then(({ data }) => {
-        console.log(data);
-
         this.$q.loading.hide();
 
         // Almacenar los datos completos de usuarios para referencia
@@ -83,7 +92,14 @@ export default {
         }
       })
       .catch((error) => {
-        console.log(error);
+        this.$q.loading.hide();
+        console.error(error);
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message: "Error al cargar los usuarios",
+        });
       });
 
     // console.log("Iniciando sesión...");
@@ -114,8 +130,6 @@ export default {
     serviceHttp
       .get(`/genBoleta/${this.optUser.value}?${queryParams}`)
       .then(({ data }) => {
-        console.log(data);
-
         this.$q.loading.hide();
 
         this.arr_boletas = [];
@@ -128,7 +142,6 @@ export default {
             message: data?.sMessage,
           });
 
-          console.log(this.arr_boletas);
           // useUserStore().setUser(data?.data || {});
 
           // this.$router.replace("/dashboard");
@@ -143,7 +156,15 @@ export default {
         this.onSelectUser();
       })
       .catch((error) => {
-        console.log(error);
+        this.$q.loading.hide();
+        console.error(error);
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message:
+            error?.response?.data?.sMessage || "Error al generar la boleta",
+        });
       });
   },
   // formatDate: function (val) {
@@ -153,8 +174,8 @@ export default {
   //     let val = (value / 1).toFixed(2)
   //     return `S/.${val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
   // },
-  onSelectOpt: function (opt) {
-    this.getList(opt.value, this.optUser.value);
+  onSelectOpt: function (sState) {
+    this.getList(sState, this.optUser.value);
   },
   onSelectUser: function () {
     this.arr_boletas = [];
@@ -169,10 +190,7 @@ export default {
       this.userActiveDisplay = false;
     }
 
-    this.getList(
-      this.optBoleta.value == undefined ? "Pending" : this.optBoleta.value,
-      this.optUser.value
-    );
+    this.getList(this.optBoleta, this.optUser.value);
 
     // Si estamos en la pestaña de servicios, cargar los servicios también
     if (this.activeTab === "servicios") {
@@ -298,11 +316,13 @@ export default {
 
     this.$q.loading.show();
 
+    // Same as getList: ignore answers for a user that is no longer selected
+    const isOld = () => iUId !== this.optUser?.value;
+
     serviceHttp
       .get(`/getServicios?uid=${iUId}`)
       .then(({ data }) => {
-        console.log("Servicios:", data);
-
+        if (isOld()) return;
         this.$q.loading.hide();
 
         this.arr_servicios = data?.data || [];
@@ -314,8 +334,6 @@ export default {
             icon: "check_circle",
             message: data?.sMessage,
           });
-
-          console.log(this.arr_servicios);
         } else {
           this.$q.notify({
             color: "red-8",
@@ -326,7 +344,8 @@ export default {
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
+        if (isOld()) return;
         this.$q.loading.hide();
         this.$q.notify({
           color: "red-8",
@@ -362,12 +381,7 @@ export default {
               });
 
               // Recargar la lista de boletas
-              this.getList(
-                this.optBoleta?.value == undefined
-                  ? "Pending"
-                  : this.optBoleta.value,
-                this.optUser?.value
-              );
+              this.getList(this.optBoleta, this.optUser?.value);
             } else {
               this.$q.notify({
                 color: "red-8",
@@ -379,7 +393,7 @@ export default {
           })
           .catch((error) => {
             this.$q.loading.hide();
-            console.log(error);
+            console.error(error);
             this.$q.notify({
               color: "red-8",
               textColor: "white",
@@ -424,11 +438,14 @@ export default {
   },
 
   confirmEditServicio: function () {
+    // Perfil and PIN may come from the API as numbers, and an empty number
+    // input gives "", so normalize them before validating
+    const perfil = String(this.editingServicio.Perfil ?? "").trim();
+    const pin = String(this.editingServicio.Pin ?? "").trim();
+    const monto = parseFloat(this.editingServicio.Monto);
+
     // Validar campos requeridos
-    if (
-      !this.editingServicio.Perfil ||
-      this.editingServicio.Perfil.trim() === ""
-    ) {
+    if (!perfil) {
       this.$q.notify({
         color: "orange-8",
         textColor: "white",
@@ -439,11 +456,7 @@ export default {
     }
 
     // Validar monto
-    if (
-      this.editingServicio.Monto === null ||
-      this.editingServicio.Monto === undefined ||
-      this.editingServicio.Monto < 0
-    ) {
+    if (Number.isNaN(monto) || monto < 0) {
       this.$q.notify({
         color: "orange-8",
         textColor: "white",
@@ -453,7 +466,7 @@ export default {
       return;
     }
 
-    if (this.editingServicio.Monto > 999999.99) {
+    if (monto > 999999.99) {
       this.$q.notify({
         color: "orange-8",
         textColor: "white",
@@ -464,11 +477,7 @@ export default {
     }
 
     // Validar longitud del PIN si se proporciona
-    if (
-      this.editingServicio.Pin &&
-      (this.editingServicio.Pin.length < 4 ||
-        this.editingServicio.Pin.length > 8)
-    ) {
+    if (pin && (pin.length < 4 || pin.length > 8)) {
       this.$q.notify({
         color: "orange-8",
         textColor: "white",
@@ -483,13 +492,13 @@ export default {
     // Preparar payload según la especificación del backend
     const payload = {
       id_usuario_servicio: this.editingServicio.Id,
-      desc_perfil: this.editingServicio.Perfil.trim(),
-      monto: parseFloat(this.editingServicio.Monto).toFixed(2),
+      desc_perfil: perfil,
+      monto: monto.toFixed(2),
     };
 
     // Agregar PIN solo si se proporciona y no está vacío
-    if (this.editingServicio.Pin && this.editingServicio.Pin.trim() !== "") {
-      payload.PIN = this.editingServicio.Pin.trim();
+    if (pin) {
+      payload.PIN = pin;
     }
 
     serviceHttp
@@ -525,7 +534,7 @@ export default {
 
           // También refrescar boletas si estamos en esa pestaña
           if (this.activeTab === "boletas") {
-            this.getList(this.optBoleta.value || "Pending", this.optUser.value);
+            this.getList(this.optBoleta, this.optUser.value);
           }
         } else {
           this.$q.notify({
@@ -538,7 +547,7 @@ export default {
       })
       .catch((error) => {
         this.$q.loading.hide();
-        console.log(error);
+        console.error(error);
         const errorMessage =
           error?.response?.data?.sMessage || "Error al actualizar el servicio";
         this.$q.notify({
@@ -580,10 +589,7 @@ export default {
 
               // Refresh both lists to ensure data consistency
               this.getServiciosList(this.optUser?.value);
-              this.getList(
-                this.optBoleta === "Pendientes" ? "Pending" : "Paid",
-                this.optUser?.value
-              );
+              this.getList(this.optBoleta, this.optUser?.value);
             } else {
               this.$q.notify({
                 color: "red-8",
@@ -595,7 +601,7 @@ export default {
           })
           .catch((error) => {
             this.$q.loading.hide();
-            console.log(error);
+            console.error(error);
             this.$q.notify({
               color: "red-8",
               textColor: "white",
@@ -905,7 +911,7 @@ export default {
 
           // Refrescar las listas para mantener consistencia
           this.getListUsers();
-          this.getList(this.optBoleta.value || "Pending", this.optUser.value);
+          this.getList(this.optBoleta, this.optUser.value);
           if (this.activeTab === "servicios") {
             this.getServiciosList(this.optUser.value);
           }
@@ -926,7 +932,7 @@ export default {
       })
       .catch((error) => {
         this.$q.loading.hide();
-        console.log(error);
+        console.error(error);
         this.$q.notify({
           color: "red-8",
           textColor: "white",

@@ -1,7 +1,10 @@
 import { useUserStore } from "src/stores/user";
 import { serviceHttp } from "../../utils/serviceHttp";
+import { formatMoney } from "src/utils/format";
+import { copyAndNotify } from "src/utils/clipboard";
 // import { date } from "quasar";
 export default {
+  formatMoney,
   getList(sState, iUId) {
     this.$q.loading.show();
 
@@ -33,7 +36,14 @@ export default {
         }
       })
       .catch((error) => {
-        console.log(error);
+        this.$q.loading.hide();
+        console.error(error);
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message: "Error al cargar las boletas",
+        });
       });
 
     // console.log("Iniciando sesión...");
@@ -49,8 +59,8 @@ export default {
   //     let val = (value / 1).toFixed(2)
   //     return `S/.${val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
   // },
-  onSelectOpt: function (opt) {
-    this.getList(opt.value);
+  onSelectOpt: function (sState) {
+    this.getList(sState);
   },
   onViewBoleta: function (oBoleta) {
     this.$q.loading.show({ message: "Obteniendo la boleta..." });
@@ -183,7 +193,8 @@ export default {
         color: "red-8",
         textColor: "white",
         icon: "error",
-        message: "Error al obtener opciones de pago",
+        message:
+          error.response?.data?.sMessage || "Error al obtener opciones de pago",
       });
     }
   },
@@ -269,7 +280,7 @@ export default {
         });
 
         // Actualizar la lista de boletas para reflejar los cambios del backend
-        this.getList(this.optBoleta.value || "Pending");
+        this.getList(this.optBoleta);
 
         this.showPaymentModal = false;
       } else {
@@ -287,7 +298,9 @@ export default {
         color: "red-8",
         textColor: "white",
         icon: "error",
-        message: "Error al enviar la verificación de pago",
+        message:
+          error.response?.data?.sMessage ||
+          "Error al enviar la verificación de pago",
       });
     }
   },
@@ -319,45 +332,7 @@ export default {
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(numericData);
-      this.$q.notify({
-        color: "green-8",
-        textColor: "white",
-        icon: "check_circle",
-        message: `Copiado: ${numericData}`,
-        position: "top",
-        timeout: 1500,
-      });
-    } catch (error) {
-      // Fallback para navegadores que no soportan la API del portapapeles
-      try {
-        const textArea = document.createElement("textarea");
-        textArea.value = numericData;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textArea);
-
-        this.$q.notify({
-          color: "green-8",
-          textColor: "white",
-          icon: "check_circle",
-          message: `Copiado: ${numericData}`,
-          position: "top",
-          timeout: 1500,
-        });
-      } catch (fallbackError) {
-        this.$q.notify({
-          color: "red-8",
-          textColor: "white",
-          icon: "error",
-          message: "Error al copiar al portapapeles",
-          position: "top",
-          timeout: 2000,
-        });
-      }
-    }
+    await copyAndNotify(numericData, `Copiado: ${numericData}`);
   },
 
   // Método para extraer datos numéricos del texto
@@ -372,8 +347,10 @@ export default {
       /(?:cel\.?|celular|teléfono|phone|móvil)[\s:]*([0-9\s\-]{9,})/i,
       // CCI (20 dígitos)
       /(?:cci)[\s:]*([0-9\s\-]{20})/i,
-      // Cualquier secuencia de números larga (8+ dígitos)
-      /([0-9\s\-]{8,})/g,
+      // Cualquier secuencia de números larga (8+ caracteres) que empieza y
+      // termina en dígito, para no copiar solo espacios o guiones.
+      // Sin el flag "g": con "g", match() no devuelve el grupo en match[1]
+      /(\d[\d\s-]{6,}\d)/,
     ];
 
     for (const pattern of patterns) {

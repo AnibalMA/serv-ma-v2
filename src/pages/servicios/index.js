@@ -9,7 +9,6 @@ export default {
   methods,
   mounted() {
     this.getPlatformsByUser();
-    window.$q = this.$q;
     bindSafeEvents();
   },
   beforeUnmount() {

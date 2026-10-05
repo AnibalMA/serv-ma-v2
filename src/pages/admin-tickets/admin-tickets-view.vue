@@ -252,12 +252,9 @@
           <template v-if="ticketForm.tipo">
             <!-- Monto para descuento -->
             <q-input
-              v-if="
-                ticketForm.tipo.value === 'CREAR_DESCUENTO' ||
-                ticketForm.tipo === 'CREAR_DESCUENTO'
-              "
+              v-if="ticketForm.tipo === 'CREAR_DESCUENTO'"
               v-model.number="ticketForm.monto"
-              label="Monto del descuento (S/.)"
+              label="Monto del descuento (S/)"
               outlined
               dense
               type="number"
@@ -293,9 +290,7 @@
 
             <!-- Nuevo perfil -->
             <q-input
-              v-if="
-                (ticketForm.tipo.value || ticketForm.tipo) === 'CAMBIAR_PERFIL'
-              "
+              v-if="ticketForm.tipo === 'CAMBIAR_PERFIL'"
               v-model="ticketForm.desc_perfil"
               label="Nuevo nombre de perfil"
               outlined
@@ -304,9 +299,7 @@
 
             <!-- Nuevo PIN -->
             <q-input
-              v-if="
-                (ticketForm.tipo.value || ticketForm.tipo) === 'CAMBIAR_PIN'
-              "
+              v-if="ticketForm.tipo === 'CAMBIAR_PIN'"
               v-model="ticketForm.nuevo_pin"
               label="Nuevo PIN"
               outlined
@@ -318,9 +311,7 @@
 
             <!-- Día de pago -->
             <q-input
-              v-if="
-                (ticketForm.tipo.value || ticketForm.tipo) === 'CAMBIAR_PAYDAY'
-              "
+              v-if="ticketForm.tipo === 'CAMBIAR_PAYDAY'"
               v-model.number="ticketForm.dia_pago"
               label="Nuevo día de pago (1-31)"
               outlined
@@ -487,13 +478,7 @@ export default {
       );
     },
     needsServiceSelector() {
-      const tipo = this.ticketForm.tipo?.value || this.ticketForm.tipo;
-      return [
-        "CAMBIAR_PIN",
-        "CAMBIAR_PERFIL",
-        "BAJA_SERVICIO",
-        "CAMBIAR_PAYDAY",
-      ].includes(tipo);
+      return this.needsService(this.ticketForm.tipo);
     },
   },
   methods: {
@@ -501,7 +486,7 @@ export default {
     quickAction(ticketType) {
       if (!this.checkAdminAccess()) return;
       this.ticketForm = {
-        tipo: ticketType,
+        tipo: ticketType.value,
         usuario: null,
         descripcion: "",
         monto: 0,

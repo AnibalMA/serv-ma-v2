@@ -31,10 +31,10 @@
                 {{ service.pin || service.pin_perfil || "-" }}
               </q-item-label>
               <q-item-label caption>
-                Día pago: {{ service.dia_pago ?? "-" }} | Monto: S/.
+                Día pago: {{ service.dia_pago ?? "-" }} | Monto:
                 {{
                   service.monto !== null && service.monto !== undefined
-                    ? Number(service.monto).toFixed(2)
+                    ? formatMoney(service.monto)
                     : "-"
                 }}
               </q-item-label>
@@ -89,6 +89,8 @@
 </template>
 
 <script>
+import { formatMoney } from "src/utils/format";
+
 export default {
   props: {
     modelValue: Boolean,
@@ -102,5 +104,8 @@ export default {
     "deactivate-service",
     "reload",
   ],
+  methods: {
+    formatMoney,
+  },
 };
 </script>
