@@ -96,19 +96,16 @@ describe("createParticles", () => {
 });
 
 describe("createHalloweenParticles", () => {
-  it("creates bats, ghosts and pumpkins on big screens", () => {
-    const { bats, ghosts, pumpkins } = createHalloweenParticles(false);
+  it("creates only ghosts (no bats or pumpkins)", () => {
+    const particles = createHalloweenParticles(false);
 
-    expect(bats).toHaveLength(5);
-    expect(ghosts).toHaveLength(4);
-    expect(pumpkins).toHaveLength(7);
+    expect(Object.keys(particles)).toEqual(["ghosts"]);
+    expect(particles.ghosts).toHaveLength(4);
   });
 
-  it("creates about half of them on small screens", () => {
-    const { bats, ghosts, pumpkins } = createHalloweenParticles(true);
+  it("creates half of them on small screens", () => {
+    const { ghosts } = createHalloweenParticles(true);
 
-    expect(bats).toHaveLength(3);
     expect(ghosts).toHaveLength(2);
-    expect(pumpkins).toHaveLength(4);
   });
 });

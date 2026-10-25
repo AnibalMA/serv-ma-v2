@@ -22,34 +22,14 @@
       />
     </svg>
 
-    <div
-      v-for="bat in bats"
-      :key="bat.id"
-      class="bat"
-      :class="{ 'is-reverse': bat.reverse }"
-      :style="[particleStyle(bat), { top: `${bat.top}%` }]"
-    >
-      <span class="bat__wings">🦇</span>
-    </div>
-
     <span
       v-for="ghost in ghosts"
       :key="ghost.id"
       class="ghost"
       :class="{ 'is-reverse': ghost.reverse }"
-      :style="[particleStyle(ghost), { left: `${ghost.left}%` }]"
+      :style="ghostStyle(ghost)"
     >
       👻
-    </span>
-
-    <span
-      v-for="pumpkin in pumpkins"
-      :key="pumpkin.id"
-      class="pumpkin"
-      :class="{ 'is-reverse': pumpkin.reverse }"
-      :style="[particleStyle(pumpkin), { left: `${pumpkin.left}%` }]"
-    >
-      🎃
     </span>
   </div>
 </template>
@@ -60,15 +40,16 @@ import { createHalloweenParticles } from "src/utils/seasonalTheme";
 export default {
   name: "HalloweenEffects",
   data() {
-    // Created once; fewer decorations on phones
+    // Created once; fewer ghosts on phones
     return createHalloweenParticles(this.$q.screen.lt.sm);
   },
   methods: {
-    particleStyle(particle) {
+    ghostStyle(ghost) {
       return {
-        fontSize: `${particle.size}px`,
-        animationDuration: `${particle.duration}s`,
-        animationDelay: `${particle.delay}s`,
+        left: `${ghost.left}%`,
+        fontSize: `${ghost.size}px`,
+        animationDuration: `${ghost.duration}s`,
+        animationDelay: `${ghost.delay}s`,
       };
     },
   },
@@ -114,85 +95,17 @@ export default {
   }
 }
 
-.bat,
-.ghost,
-.pumpkin {
-  position: absolute;
-  line-height: 1;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  will-change: transform;
-}
-
-// A bit see-through so they never fully hide the text below
-.bat,
-.pumpkin {
-  opacity: 0.85;
-}
-
-.bat {
-  left: 0;
-  animation-name: bat-fly;
-  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.5));
-
-  &.is-reverse {
-    animation-direction: reverse;
-  }
-}
-
-.bat__wings {
-  display: inline-block;
-  animation: bat-flap 0.3s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
 .ghost {
   --sway: 24px;
+  position: absolute;
   top: 100%;
+  line-height: 1;
   opacity: 0;
-  animation-name: ghost-rise;
+  animation: ghost-rise linear infinite;
+  will-change: transform;
 
   &.is-reverse {
     --sway: -24px;
-  }
-}
-
-.pumpkin {
-  --spin: 360deg;
-  top: 0;
-  animation-name: pumpkin-fall;
-
-  &.is-reverse {
-    --spin: -360deg;
-  }
-}
-
-// Across the screen (from just outside the left edge to just outside the
-// right one) with a gentle up and down wave
-@keyframes bat-fly {
-  0% {
-    transform: translate(-100%, 0);
-  }
-  25% {
-    transform: translate(calc(25vw - 75%), -24px);
-  }
-  50% {
-    transform: translate(calc(50vw - 50%), 12px);
-  }
-  75% {
-    transform: translate(calc(75vw - 25%), -18px);
-  }
-  100% {
-    transform: translate(100vw, 0);
-  }
-}
-
-@keyframes bat-flap {
-  from {
-    transform: scale(1, 1);
-  }
-  to {
-    transform: scale(0.85, 0.55);
   }
 }
 
@@ -220,15 +133,6 @@ export default {
   }
 }
 
-@keyframes pumpkin-fall {
-  from {
-    transform: translateY(-100%) rotate(0deg);
-  }
-  to {
-    transform: translateY(100vh) rotate(var(--spin));
-  }
-}
-
 @media (max-width: 599px) {
   .cobweb {
     width: 60px;
@@ -242,9 +146,7 @@ export default {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bat,
-  .ghost,
-  .pumpkin {
+  .ghost {
     display: none;
   }
 }

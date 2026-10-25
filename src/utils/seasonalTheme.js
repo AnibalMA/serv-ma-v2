@@ -7,7 +7,7 @@ function between(min, max, random) {
   return min + random() * (max - min);
 }
 
-// Random place and timing for each floating decoration (bat, ghost, pumpkin)
+// Random place and timing for each floating ghost
 export function createParticles(
   count,
   { size, duration },
@@ -34,19 +34,9 @@ export function createHalloweenParticles(isSmallScreen, random = Math.random) {
   const amount = (count) => (isSmallScreen ? Math.ceil(count / 2) : count);
 
   return {
-    bats: createParticles(
-      amount(5),
-      { size: [24, 38], duration: [9, 16] },
-      random
-    ),
     ghosts: createParticles(
       amount(4),
       { size: [30, 46], duration: [14, 22] },
-      random
-    ),
-    pumpkins: createParticles(
-      amount(7),
-      { size: [20, 32], duration: [8, 15] },
       random
     ),
   };

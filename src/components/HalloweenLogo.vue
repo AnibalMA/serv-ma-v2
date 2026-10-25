@@ -2,8 +2,8 @@
   <div v-if="active" class="halloween-logo">
     <slot />
 
-    <!-- Everything stays inside the logo box: the header title clips overflow -->
-    <svg class="witch-hat" viewBox="0 0 100 100" aria-hidden="true">
+    <!-- The hat sits on the laptop and sticks out above the logo -->
+    <svg class="witch-hat" viewBox="0 8 100 85" aria-hidden="true">
       <ellipse class="witch-hat__brim" cx="50" cy="82" rx="47" ry="10" />
       <path
         class="witch-hat__cone"
@@ -23,8 +23,8 @@
       />
     </svg>
 
-    <svg class="spider" viewBox="0 0 40 100" aria-hidden="true">
-      <line class="spider__thread" x1="20" y1="0" x2="20" y2="64" />
+    <svg class="spider" viewBox="0 20 40 80" aria-hidden="true">
+      <line class="spider__thread" x1="20" y1="20" x2="20" y2="64" />
       <path
         class="spider__legs"
         d="M17 70L8 62L3 68M16 74L6 70L1 77M16 78L6 80L2 88M17 82L9 88L7 96M23 70L32 62L37 68M24 74L34 70L39 77M24 78L34 80L38 88M23 82L31 88L33 96"
@@ -62,20 +62,22 @@ $outline: #ddd6fe;
   line-height: 0;
 }
 
-// Sizes in % of the logo, so it works for the small header logo and the big one
+// Sizes and places in % of the logo, so they work for the small header logo
+// and the big login one. The laptop spans about x 40-61% and y 10-39%.
 .witch-hat,
 .spider {
   position: absolute;
-  top: 0;
   height: auto;
   pointer-events: none;
 }
 
 .witch-hat {
-  left: 29%;
-  width: 20%;
-  transform: rotate(-12deg);
-  transform-origin: 50% 82%;
+  // The brim rests on the top edge of the laptop
+  bottom: 90%;
+  left: 39%;
+  width: 18%;
+  transform: rotate(-10deg);
+  transform-origin: 50% 90%;
 
   // Same thin outline on the small and the big logo
   &__brim,
@@ -106,7 +108,9 @@ $outline: #ddd6fe;
 }
 
 .spider {
-  left: 70%;
+  // Hangs from the top right corner of the laptop
+  top: 9%;
+  left: 62%;
   width: 8%;
   transform-origin: 50% 0;
   animation: spider-swing 3s ease-in-out infinite alternate;
