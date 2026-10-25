@@ -2,6 +2,7 @@
   <div>
     <!-- Efecto de nieve navideña -->
     <!-- <ChristmasSnow /> -->
+    <HalloweenEffects v-if="isHalloween" />
 
     <!-- Música navideña de fondo -->
     <!-- <audio
@@ -23,19 +24,24 @@
       style="height: 100vh"
       class="shadow-2"
     >
-      <q-header :elevated="true" class="bg-cyan-8">
+      <q-header
+        :elevated="true"
+        :class="isHalloween ? 'halloween-header' : 'bg-cyan-8'"
+      >
         <q-toolbar>
           <q-toolbar-title style="display: flex; align-items: center">
-            <img
-              :src="images.logoMA"
-              alt="Serv-MA"
-              style="
-                height: 50px;
-                width: auto;
-                max-width: none;
-                object-fit: contain;
-              "
-            />
+            <HalloweenLogo :active="isHalloween">
+              <img
+                :src="images.logoMA"
+                alt="Serv-MA"
+                style="
+                  height: 50px;
+                  width: auto;
+                  max-width: none;
+                  object-fit: contain;
+                "
+              />
+            </HalloweenLogo>
           </q-toolbar-title>
           <q-space />
           <div :hidden="$q.screen.xs">
@@ -613,8 +619,16 @@ import girlImage from "src/assets/girl-avatar.png";
 import logoMA from "src/assets/logo_serv-ma.webp";
 import { io } from "socket.io-client";
 import { serviceHttp } from "src/utils/serviceHttp";
+import { isHalloweenSeason } from "src/utils/seasonalTheme";
+import HalloweenEffects from "src/components/HalloweenEffects.vue";
+import HalloweenLogo from "src/components/HalloweenLogo.vue";
 // import ChristmasSnow from "src/components/ChristmasSnow.vue";
 export default {
+  components: {
+    HalloweenEffects,
+    HalloweenLogo,
+    // ChristmasSnow,
+  },
   data() {
     const hiddenTemporaryRoutes = [];
     const roleMenu = useUserStore().rols;
@@ -647,6 +661,7 @@ export default {
       unreadCount: 0,
       showNotifications: false,
       showNotificationsDialog: false,
+      isHalloween: isHalloweenSeason(),
       // Controles de música navideña - DESACTIVADO
       /* isPlaying: false,
       isMuted: false,
@@ -669,6 +684,10 @@ export default {
       handler(newNotifications) {
         this.updateUnreadCount();
       },
+    },
+    // A tab left open from Oct 31 loses the Halloween look on the next page change
+    $route() {
+      this.isHalloween = isHalloweenSeason();
     },
   },
   methods: {

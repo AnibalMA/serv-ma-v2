@@ -6,13 +6,21 @@ import { serviceHttp } from "../../utils/serviceHttp";
 import { computed } from "vue";
 import { GOOGLE_CLIENT_ID } from "src/utils/googleSignIn";
 import { TURNSTILE_SITE_KEY, removeTurnstile } from "src/utils/turnstile";
+import { isHalloweenSeason } from "src/utils/seasonalTheme";
+import HalloweenEffects from "src/components/HalloweenEffects.vue";
+import HalloweenLogo from "src/components/HalloweenLogo.vue";
 export default {
+  components: {
+    HalloweenEffects,
+    HalloweenLogo,
+  },
   data() {
     return {
       ...data(),
       showServerStatus: false,
       bannerDismissed: false,
       isWakingUpBackend: false,
+      isHalloween: isHalloweenSeason(),
     };
   },
   methods,

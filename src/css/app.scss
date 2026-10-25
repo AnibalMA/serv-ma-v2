@@ -155,3 +155,9 @@ body.body--dark .text-high-contrast {
   color: #fff;
   background: #000;
 }
+
+/* Halloween (October only): white text keeps 4.5:1 contrast on every color */
+.halloween-header {
+  background: linear-gradient(90deg, #2e1065 0%, #4c1d95 45%, #c2410c 100%);
+  color: #fff;
+}
