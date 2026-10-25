@@ -341,7 +341,7 @@
 
       <q-page-container>
         <q-scroll-area
-          style="height: calc(100vh - 50px)"
+          :style="{ height: contentHeight }"
           :thumb-style="thumbStyle"
           :bar-style="barStyle"
           class="main-content-area"
@@ -1004,6 +1004,12 @@ export default {
     loggedInUser() {
       // Read the store, so the name updates after editing "Mi perfil"
       return useUserStore().user || {};
+    },
+    // The content fills the screen below the header. In October the header
+    // is 10px taller to fit the witch hat (see .halloween-header in app.scss)
+    contentHeight() {
+      const headerHeight = this.isHalloween ? 60 : 50;
+      return `calc(100vh - ${headerHeight}px)`;
     },
     /* currentSong() {
       return this.playlist[this.currentSongIndex] || this.playlist[0];
