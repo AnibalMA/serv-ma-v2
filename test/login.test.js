@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const { setUser, post } = vi.hoisted(() => ({
   setUser: vi.fn(),
@@ -13,6 +13,9 @@ vi.mock("src/utils/googleSignIn", () => ({
   GOOGLE_CLIENT_ID: "",
   renderGoogleButton: vi.fn(),
 }));
+// Vitest has no .vue plugin; the decorations are not under test here
+vi.mock("src/components/HalloweenEffects.vue", () => ({ default: {} }));
+vi.mock("src/components/HalloweenLogo.vue", () => ({ default: {} }));
 
 import loginPage from "src/pages/login/index";
 import methods from "src/pages/login/methods";
@@ -254,5 +257,25 @@ describe("isWaitingForTurnstile", () => {
     expect(
       isWaitingForTurnstile.call({ ...waiting, isTurnstileEnabled: false })
     ).toBe(false);
+  });
+});
+
+describe("Halloween theme", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("is on during October", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 24));
+
+    expect(loginPage.data().isHalloween).toBe(true);
+  });
+
+  it("is off the rest of the year", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 1));
+
+    expect(loginPage.data().isHalloween).toBe(false);
   });
 });

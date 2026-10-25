@@ -14,9 +14,18 @@ const path = require("path");
 module.exports = configure(function (ctx) {
   // console.log('ctx.dev', ctx.dev);
   // console.log(path.resolve(__dirname, './production.env'));
-  const sPathEnv = ctx.dev
-    ? path.resolve(__dirname, "./.env")
-    : path.resolve(__dirname, "./.env.prod");
+  let sPathEnv;
+
+  if (ctx.dev) {
+    // Desarrollo local
+    sPathEnv = path.resolve(__dirname, "./.env");
+  } else if (process.env.VERCEL_ENV === "preview") {
+    // Vercel Preview (develop)
+    sPathEnv = path.resolve(__dirname, "./.env.dev");
+  } else {
+    // Vercel Production (main)
+    sPathEnv = path.resolve(__dirname, "./.env.prod");
+  }
   // console.log('sPathEnv', sPathEnv);
   return {
     eslint: {
@@ -251,3 +260,4 @@ module.exports = configure(function (ctx) {
     },
   };
 });
+

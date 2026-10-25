@@ -2,6 +2,7 @@
   <q-layout view="lHh Lpr lFf">
     <!-- Efecto de nieve navideña -->
     <!-- <ChristmasSnow /> -->
+    <HalloweenEffects v-if="isHalloween" />
 
     <q-page-container>
       <q-page class="flex flex-center bg-login">
@@ -87,17 +88,19 @@
           style="border-radius: 18px; background-color: #173153; width: 350px"
         >
           <q-card-section class="text-center">
-            <q-img
-              src="/imgs/logo_serv-ma.webp"
-              srcset="/imgs/logo_serv-ma@2x.webp 2x"
-              style="height: 150px"
-              fetchpriority="high"
-              loading="eager"
-            >
-              <template v-slot:loading>
-                <q-spinner-gears color="white" />
-              </template>
-            </q-img>
+            <HalloweenLogo :active="isHalloween">
+              <q-img
+                src="/imgs/logo_serv-ma.webp"
+                srcset="/imgs/logo_serv-ma@2x.webp 2x"
+                style="height: 150px"
+                fetchpriority="high"
+                loading="eager"
+              >
+                <template v-slot:loading>
+                  <q-spinner-gears color="white" />
+                </template>
+              </q-img>
+            </HalloweenLogo>
             <div class="text-h5 text-weight-bold lbl-login">
               Inicio de sesión
             </div>

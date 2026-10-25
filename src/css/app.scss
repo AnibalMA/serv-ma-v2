@@ -155,3 +155,15 @@ body.body--dark .text-high-contrast {
   color: #fff;
   background: #000;
 }
+
+/* Halloween (October only): white text keeps 4.5:1 contrast on every color */
+.halloween-header {
+  background: linear-gradient(90deg, #2e1065 0%, #4c1d95 45%, #c2410c 100%);
+  color: #fff;
+
+  /* Room above the logo for the witch hat (the title clips what sticks out).
+     The header grows from 50px to 60px: keep contentHeight in MainLayout.vue in sync */
+  .q-toolbar__title {
+    padding-top: 10px;
+  }
+}
