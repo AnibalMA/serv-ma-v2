@@ -322,15 +322,21 @@
           style="height: 150px"
         >
           <div class="absolute-bottom bg-transparent">
-            <q-avatar size="56px" class="q-mb-sm">
-              <img
-                :src="
-                  loggedInUser.genero === 'M'
-                    ? images.boyImage
-                    : images.girlImage
-                "
-              />
-            </q-avatar>
+            <div class="relative-position inline-block q-mb-sm">
+              <user-avatar :user="loggedInUser" size="56px" />
+              <q-btn
+                round
+                size="sm"
+                color="primary"
+                icon="edit"
+                :to="{ name: 'perfil' }"
+                aria-label="Editar perfil"
+                class="absolute"
+                style="right: -6px; bottom: -6px"
+              >
+                <q-tooltip>Editar perfil</q-tooltip>
+              </q-btn>
+            </div>
             <div class="text-weight-bold">
               {{ loggedInUser.nom_usuario }} {{ loggedInUser.ape_usuario }}
             </div>
@@ -614,19 +620,19 @@ import { useUserStore } from "src/stores/user";
 import { Dark } from "quasar";
 // import { route, store } from 'quasar/wrappers'
 // import { serviceHttp } from "src/utils/serviceHttp";
-import boyImage from "src/assets/boy-avatar.png";
-import girlImage from "src/assets/girl-avatar.png";
 import logoMA from "src/assets/logo_serv-ma.webp";
 import { io } from "socket.io-client";
 import { serviceHttp } from "src/utils/serviceHttp";
 import { isHalloweenSeason } from "src/utils/seasonalTheme";
 import HalloweenEffects from "src/components/HalloweenEffects.vue";
 import HalloweenLogo from "src/components/HalloweenLogo.vue";
+import UserAvatar from "src/components/UserAvatar.vue";
 // import ChristmasSnow from "src/components/ChristmasSnow.vue";
 export default {
   components: {
     HalloweenEffects,
     HalloweenLogo,
+    UserAvatar,
     // ChristmasSnow,
   },
   data() {
@@ -642,8 +648,6 @@ export default {
       user: useUserStore().user,
       drawer: false,
       images: {
-        boyImage,
-        girlImage,
         logoMA,
       },
       menuList: filteredMenu.length
