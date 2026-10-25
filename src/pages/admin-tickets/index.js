@@ -10,6 +10,14 @@ export default {
       this.loadActionHistory();
     }
   },
+  watch: {
+    // If the user was picked first, load their services once the type needs one
+    "ticketForm.tipo"(tipo) {
+      if (this.ticketForm.usuario && this.needsService(tipo)) {
+        this.loadUserServices(this.ticketForm.usuario);
+      }
+    },
+  },
   setup() {
     const userStore = useUserStore();
     return { userStore };

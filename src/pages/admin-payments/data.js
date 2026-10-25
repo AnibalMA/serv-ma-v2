@@ -1,9 +1,21 @@
+import { formatMoney } from "src/utils/format";
+import { amountToApprove } from "./helpers";
+
 export default function () {
   return {
+    activeTab: "requests", // "requests" | "options"
     loading: false,
     loadingAction: false,
     searchTerm: "",
     arr_requests: [],
+
+    // Pestaña: métodos de pago
+    paymentOptions: [],
+    loadingOptions: false,
+    showOptionDialog: false,
+    editingOption: null, // null = nuevo método
+    savingOption: false,
+    uploadingQrId: null, // id del método al que se le sube o quita el QR
 
     // Dialog: ver captura de pantalla
     showScreenshotDialog: false,
@@ -16,6 +28,7 @@ export default function () {
       id_solicitud: null,
       cod_boleta: "",
       nom_usuario: "",
+      nro_operacion: null,
       motivoRechazo: "",
     },
 
@@ -25,7 +38,8 @@ export default function () {
       id_solicitud: null,
       cod_boleta: "",
       nom_usuario: "",
-      monto_declarado: 0,
+      monto_a_pagar: 0,
+      nro_operacion: null,
     },
 
     // Columnas de la tabla
@@ -53,10 +67,12 @@ export default function () {
         sortable: true,
       },
       {
-        name: "monto_declarado",
-        label: "Monto Declarado",
+        name: "monto_a_pagar",
+        label: "Monto a pagar",
         align: "right",
-        field: "monto_declarado",
+        field: (row) => Number(amountToApprove(row)),
+        format: (val) => formatMoney(val),
+        classes: "text-weight-bold text-positive",
         sortable: true,
       },
       {
@@ -65,6 +81,14 @@ export default function () {
         align: "left",
         field: "nom_payment_opc",
         sortable: true,
+      },
+      {
+        name: "nro_operacion",
+        label: "N° operación",
+        align: "center",
+        field: "nro_operacion",
+        style: "font-variant-numeric: tabular-nums",
+        format: (val) => val || "—",
       },
       {
         name: "comments",

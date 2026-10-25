@@ -8,7 +8,7 @@
           Validar Pagos
         </div>
         <div class="text-caption text-grey-6">
-          Solicitudes de verificación de pago pendientes de aprobación
+          Revisa los pagos enviados y administra los métodos de pago
         </div>
       </div>
       <div class="col-auto">
@@ -17,265 +17,297 @@
           round
           icon="refresh"
           color="primary"
-          :loading="loading"
-          @click="loadPaymentRequests"
+          :loading="activeTab === 'options' ? loadingOptions : loading"
+          @click="refreshActiveTab"
           title="Recargar"
+          aria-label="Recargar"
         />
       </div>
     </div>
 
-    <!-- Buscador -->
-    <div class="row q-mb-md">
-      <div class="col-12 col-sm-5">
-        <q-input
-          v-model="searchTerm"
-          outlined
-          dense
-          placeholder="Buscar por usuario, boleta, método de pago..."
-          clearable
-        >
-          <template #prepend>
-            <q-icon name="search" />
-          </template>
-        </q-input>
-      </div>
-      <div class="col-auto q-ml-sm self-center">
-        <q-badge
-          :color="arr_requests.length ? 'amber-8' : 'positive'"
-          text-color="white"
-          class="q-pa-xs text-subtitle2"
-        >
-          {{ filteredRequests().length }} pendiente(s)
-        </q-badge>
-      </div>
-    </div>
-
-    <!-- Tabla de solicitudes -->
-    <q-table
-      :rows="filteredRequests()"
-      :columns="columns"
-      :loading="loading"
-      row-key="id"
-      flat
-      bordered
-      binary-state-sort
-      :rows-per-page-options="[10, 20, 50]"
-      no-data-label="No hay solicitudes pendientes de validación"
-      :grid="$q.screen.lt.md"
-      :hide-header="$q.screen.lt.md"
+    <!-- Pestañas -->
+    <q-tabs
+      v-model="activeTab"
+      dense
+      no-caps
+      align="left"
+      active-color="primary"
+      indicator-color="primary"
+      class="q-mb-md"
     >
-      <template v-slot:item="props">
-        <div class="col-12">
-          <q-card flat bordered class="q-pa-sm q-mb-sm">
-            <!-- Acciones + Estado badge -->
-            <div class="row items-center justify-between q-mb-sm">
-              <div class="col">
-                <q-chip
-                  v-if="props.row.nom_payment_opc"
-                  color="blue-grey-7"
-                  text-color="white"
-                  size="sm"
-                  dense
-                  :label="props.row.nom_payment_opc"
-                />
-                <span v-else class="text-caption text-grey-5">Sin método de pago</span>
-              </div>
-              <div class="col-auto">
-                <q-btn
-                  flat
-                  round
-                  dense
-                  icon="check_circle"
-                  color="positive"
-                  size="sm"
-                  @click="onApproveRequest(props.row)"
-                >
-                  <q-tooltip>Aprobar</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  dense
-                  icon="cancel"
-                  color="red-8"
-                  size="sm"
-                  class="q-ml-xs"
-                  @click="onRejectRequest(props.row)"
-                >
-                  <q-tooltip>Rechazar</q-tooltip>
-                </q-btn>
-              </div>
-            </div>
+      <q-tab name="requests" icon="fact_check" label="Solicitudes" />
+      <q-tab name="options" icon="qr_code_2" label="Métodos de pago" />
+    </q-tabs>
 
-            <!-- Usuario -->
+    <div v-show="activeTab === 'requests'">
+      <!-- Buscador -->
+      <div class="row q-mb-md">
+        <div class="col-12 col-sm-5">
+          <q-input
+            v-model="searchTerm"
+            outlined
+            dense
+            placeholder="Buscar por usuario, boleta, método o N° operación…"
+            aria-label="Buscar solicitudes"
+            clearable
+          >
+            <template #prepend>
+              <q-icon name="search" />
+            </template>
+          </q-input>
+        </div>
+        <div class="col-auto q-ml-sm self-center">
+          <q-badge
+            :color="arr_requests.length ? 'amber-8' : 'positive'"
+            text-color="white"
+            class="q-pa-xs text-subtitle2"
+          >
+            {{ filteredRequests().length }} pendiente(s)
+          </q-badge>
+        </div>
+      </div>
+
+      <!-- Tabla de solicitudes -->
+      <q-table
+        :rows="filteredRequests()"
+        :columns="columns"
+        :loading="loading"
+        row-key="id"
+        flat
+        bordered
+        binary-state-sort
+        :rows-per-page-options="[10, 20, 50]"
+        no-data-label="No hay solicitudes pendientes de validación"
+        :grid="$q.screen.lt.md"
+        :hide-header="$q.screen.lt.md"
+      >
+        <template v-slot:item="props">
+          <div class="col-12">
+            <q-card flat bordered class="q-pa-sm q-mb-sm">
+              <!-- Acciones + Estado badge -->
+              <div class="row items-center justify-between q-mb-sm">
+                <div class="col">
+                  <q-chip
+                    v-if="props.row.nom_payment_opc"
+                    color="blue-grey-7"
+                    text-color="white"
+                    size="sm"
+                    dense
+                    :label="props.row.nom_payment_opc"
+                  />
+                  <span v-else class="text-caption text-grey-5">Sin método de pago</span>
+                </div>
+                <div class="col-auto">
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    icon="check_circle"
+                    color="positive"
+                    size="sm"
+                    aria-label="Aprobar pago"
+                    @click="onApproveRequest(props.row)"
+                  >
+                    <q-tooltip>Aprobar</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    icon="cancel"
+                    color="red-8"
+                    size="sm"
+                    class="q-ml-xs"
+                    aria-label="Rechazar solicitud"
+                    @click="onRejectRequest(props.row)"
+                  >
+                    <q-tooltip>Rechazar</q-tooltip>
+                  </q-btn>
+                </div>
+              </div>
+
+              <!-- Usuario -->
+              <div class="text-weight-medium">
+                {{ props.row.nom_usuario }} {{ props.row.ape_usuario }}
+              </div>
+              <div class="text-caption text-grey-6">
+                {{ props.row.email_usuario }}
+              </div>
+
+              <!-- Boleta + Montos -->
+              <div class="row q-mt-sm q-col-gutter-sm">
+                <div class="col-6">
+                  <div :class="$q.dark.isActive ? 'text-caption text-grey-6' : 'text-caption text-grey-7'">N° Boleta</div>
+                  <div class="text-body2">{{ props.row.cod_boleta }}</div>
+                </div>
+                <div class="col-6 text-right">
+                  <div :class="$q.dark.isActive ? 'text-caption text-grey-6' : 'text-caption text-grey-7'">Monto a pagar</div>
+                  <div class="text-body2 text-weight-bold text-positive">
+                    {{ formatMonto(amountToApprove(props.row)) }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- N° de operación (para buscarlo en la app de Yape) -->
+              <div class="q-mt-sm">
+                <div :class="$q.dark.isActive ? 'text-caption text-grey-6' : 'text-caption text-grey-7'">N° operación</div>
+                <div class="text-body2 text-weight-medium tabular-nums">
+                  {{ props.row.nro_operacion || "—" }}
+                </div>
+              </div>
+
+              <!-- Comprobante imagen -->
+              <div class="row q-mt-sm items-center" v-if="props.row.screenshot_data">
+                <q-btn
+                  icon="image"
+                  flat
+                  dense
+                  color="primary"
+                  size="sm"
+                  @click="onViewScreenshot(props.row)"
+                  label="Ver comprobante"
+                />
+              </div>
+
+              <!-- Comentarios -->
+              <div v-if="props.row.comments" class="text-caption text-grey-6 q-mt-xs">
+                {{ props.row.comments }}
+              </div>
+
+              <!-- Fecha -->
+              <div class="text-caption text-grey-5 text-right q-mt-xs">
+                {{ formatFecha(props.row.created_at) }}
+              </div>
+            </q-card>
+          </div>
+        </template>
+        <!-- Columna: acciones -->
+        <template #body-cell-actions="props">
+          <q-td :props="props" class="text-center">
+            <q-btn
+              flat
+              round
+              dense
+              icon="check_circle"
+              color="positive"
+              @click="onApproveRequest(props.row)"
+              title="Aprobar pago"
+              aria-label="Aprobar pago"
+            >
+              <q-tooltip>Aprobar pago</q-tooltip>
+            </q-btn>
+            <q-btn
+              flat
+              round
+              dense
+              icon="cancel"
+              color="red-8"
+              class="q-ml-xs"
+              @click="onRejectRequest(props.row)"
+              title="Rechazar"
+              aria-label="Rechazar solicitud"
+            >
+              <q-tooltip>Rechazar solicitud</q-tooltip>
+            </q-btn>
+          </q-td>
+        </template>
+
+        <!-- Columna: usuario -->
+        <template #body-cell-nom_usuario="props">
+          <q-td :props="props">
             <div class="text-weight-medium">
               {{ props.row.nom_usuario }} {{ props.row.ape_usuario }}
             </div>
             <div class="text-caption text-grey-6">
               {{ props.row.email_usuario }}
             </div>
+          </q-td>
+        </template>
 
-            <!-- Boleta + Montos -->
-            <div class="row q-mt-sm q-col-gutter-sm">
-              <div class="col-6">
-                <div :class="$q.dark.isActive ? 'text-caption text-grey-6' : 'text-caption text-grey-7'">N° Boleta</div>
-                <div class="text-body2">{{ props.row.cod_boleta }}</div>
-              </div>
-              <div class="col-6 text-right">
-                <div :class="$q.dark.isActive ? 'text-caption text-grey-6' : 'text-caption text-grey-7'">Monto declarado</div>
-                <div class="text-body2 text-weight-bold"
-                  :class="props.row.monto_declarado >= (props.row.monto_facturado - (props.row.monto_cancelado || 0)) ? 'text-positive' : 'text-orange-8'"
-                >
-                  {{ formatMonto(props.row.monto_declarado) }}
-                </div>
-              </div>
+        <!-- Columna: monto boleta -->
+        <template #body-cell-monto_facturado="props">
+          <q-td :props="props" class="text-right">
+            <span class="text-weight-medium">{{
+              formatMonto(props.row.monto_facturado)
+            }}</span>
+            <div
+              v-if="props.row.monto_cancelado > 0"
+              class="text-caption text-positive"
+            >
+              Pagado: {{ formatMonto(props.row.monto_cancelado) }}
             </div>
+          </q-td>
+        </template>
 
-            <!-- Comprobante imagen -->
-            <div class="row q-mt-sm items-center" v-if="props.row.screenshot_data">
-              <q-btn
-                icon="image"
-                flat
-                dense
-                color="primary"
-                size="sm"
-                @click="onViewScreenshot(props.row)"
-                label="Ver comprobante"
-              />
+        <!-- Columna: método de pago -->
+        <template #body-cell-nom_payment_opc="props">
+          <q-td :props="props">
+            <q-badge color="blue-grey-7" text-color="white" class="q-pa-xs">
+              {{ props.row.nom_payment_opc || "Sin especificar" }}
+            </q-badge>
+            <div
+              v-if="props.row.detalles_payment_opc"
+              class="text-caption text-grey-6 q-mt-xs"
+            >
+              {{ props.row.detalles_payment_opc }}
             </div>
+          </q-td>
+        </template>
 
-            <!-- Comentarios -->
-            <div v-if="props.row.comments" class="text-caption text-grey-6 q-mt-xs">
-              {{ props.row.comments }}
-            </div>
+        <!-- Columna: comentarios -->
+        <template #body-cell-comments="props">
+          <q-td :props="props">
+            <span class="text-caption">{{ props.row.comments || "-" }}</span>
+          </q-td>
+        </template>
 
-            <!-- Fecha -->
-            <div class="text-caption text-grey-5 text-right q-mt-xs">
-              {{ formatFecha(props.row.created_at) }}
-            </div>
-          </q-card>
-        </div>
-      </template>
-      <!-- Columna: acciones -->
-      <template #body-cell-actions="props">
-        <q-td :props="props" class="text-center">
-          <q-btn
-            flat
-            round
-            dense
-            icon="check_circle"
-            color="positive"
-            @click="onApproveRequest(props.row)"
-            title="Aprobar pago"
-          >
-            <q-tooltip>Aprobar pago</q-tooltip>
-          </q-btn>
-          <q-btn
-            flat
-            round
-            dense
-            icon="cancel"
-            color="red-8"
-            class="q-ml-xs"
-            @click="onRejectRequest(props.row)"
-            title="Rechazar"
-          >
-            <q-tooltip>Rechazar solicitud</q-tooltip>
-          </q-btn>
-        </q-td>
-      </template>
+        <!-- Columna: comprobante -->
+        <template #body-cell-screenshot="props">
+          <q-td :props="props" class="text-center">
+            <q-btn
+              v-if="props.row.screenshot_data"
+              flat
+              round
+              dense
+              icon="image"
+              color="primary"
+              @click="onViewScreenshot(props.row)"
+              title="Ver comprobante"
+            >
+              <q-tooltip>Ver comprobante</q-tooltip>
+            </q-btn>
+            <span v-else class="text-grey-5 text-caption">Sin imagen</span>
+          </q-td>
+        </template>
 
-      <!-- Columna: usuario -->
-      <template #body-cell-nom_usuario="props">
-        <q-td :props="props">
-          <div class="text-weight-medium">
-            {{ props.row.nom_usuario }} {{ props.row.ape_usuario }}
-          </div>
-          <div class="text-caption text-grey-6">
-            {{ props.row.email_usuario }}
-          </div>
-        </q-td>
-      </template>
+        <!-- Columna: fecha -->
+        <template #body-cell-created_at="props">
+          <q-td :props="props" class="text-center text-caption">
+            {{ formatFecha(props.row.created_at) }}
+          </q-td>
+        </template>
+      </q-table>
+    </div>
 
-      <!-- Columna: monto boleta -->
-      <template #body-cell-monto_facturado="props">
-        <q-td :props="props" class="text-right">
-          <span class="text-weight-medium">{{
-            formatMonto(props.row.monto_facturado)
-          }}</span>
-          <div
-            v-if="props.row.monto_cancelado > 0"
-            class="text-caption text-positive"
-          >
-            Pagado: {{ formatMonto(props.row.monto_cancelado) }}
-          </div>
-        </q-td>
-      </template>
+    <!-- Pestaña: métodos de pago -->
+    <PaymentOptionsTab
+      v-show="activeTab === 'options'"
+      :options="paymentOptions"
+      :loading="loadingOptions"
+      :uploading-qr-id="uploadingQrId"
+      @new="onNewPaymentOption"
+      @edit="onEditPaymentOption"
+      @upload-qr="onQrFilePicked"
+      @qr-rejected="onQrFileRejected"
+      @remove-qr="onRemoveQr"
+    />
 
-      <!-- Columna: monto declarado -->
-      <template #body-cell-monto_declarado="props">
-        <q-td :props="props" class="text-right">
-          <span
-            :class="
-              props.row.monto_declarado >=
-              props.row.monto_facturado - props.row.monto_cancelado
-                ? 'text-positive text-weight-bold'
-                : 'text-orange-8 text-weight-bold'
-            "
-          >
-            {{ formatMonto(props.row.monto_declarado) }}
-          </span>
-        </q-td>
-      </template>
-
-      <!-- Columna: método de pago -->
-      <template #body-cell-nom_payment_opc="props">
-        <q-td :props="props">
-          <q-badge color="blue-grey-7" text-color="white" class="q-pa-xs">
-            {{ props.row.nom_payment_opc || "Sin especificar" }}
-          </q-badge>
-          <div
-            v-if="props.row.detalles_payment_opc"
-            class="text-caption text-grey-6 q-mt-xs"
-          >
-            {{ props.row.detalles_payment_opc }}
-          </div>
-        </q-td>
-      </template>
-
-      <!-- Columna: comentarios -->
-      <template #body-cell-comments="props">
-        <q-td :props="props">
-          <span class="text-caption">{{ props.row.comments || "-" }}</span>
-        </q-td>
-      </template>
-
-      <!-- Columna: comprobante -->
-      <template #body-cell-screenshot="props">
-        <q-td :props="props" class="text-center">
-          <q-btn
-            v-if="props.row.screenshot_data"
-            flat
-            round
-            dense
-            icon="image"
-            color="primary"
-            @click="onViewScreenshot(props.row)"
-            title="Ver comprobante"
-          >
-            <q-tooltip>Ver comprobante</q-tooltip>
-          </q-btn>
-          <span v-else class="text-grey-5 text-caption">Sin imagen</span>
-        </q-td>
-      </template>
-
-      <!-- Columna: fecha -->
-      <template #body-cell-created_at="props">
-        <q-td :props="props" class="text-center text-caption">
-          {{ formatFecha(props.row.created_at) }}
-        </q-td>
-      </template>
-    </q-table>
+    <PaymentOptionDialog
+      v-model="showOptionDialog"
+      :option="editingOption"
+      :saving="savingOption"
+      @save="savePaymentOption"
+    />
 
     <!-- ══════════════════════════════════════════════
          Dialog: ver comprobante / captura de pantalla
@@ -338,9 +370,17 @@
             </q-item>
             <q-item>
               <q-item-section>
-                <q-item-label caption>Monto declarado</q-item-label>
+                <q-item-label caption>N° operación</q-item-label>
+                <q-item-label class="text-weight-medium tabular-nums">
+                  {{ approveForm.nro_operacion || "—" }}
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section>
+                <q-item-label caption>Monto a pagar</q-item-label>
                 <q-item-label class="text-positive text-weight-bold">
-                  {{ formatMonto(approveForm.monto_declarado) }}
+                  {{ formatMonto(approveForm.monto_a_pagar) }}
                 </q-item-label>
               </q-item-section>
             </q-item>
@@ -385,6 +425,9 @@
             Rechazando solicitud de
             <strong>{{ rejectForm.nom_usuario }}</strong> — boleta
             <strong>{{ rejectForm.cod_boleta }}</strong>
+            <br />
+            N° operación:
+            <strong class="tabular-nums">{{ rejectForm.nro_operacion || "—" }}</strong>
           </p>
           <q-input
             v-model="rejectForm.motivoRechazo"
@@ -433,5 +476,9 @@ export default {
     font-size: 1.3rem;
     line-height: 1.2;
   }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 </style>

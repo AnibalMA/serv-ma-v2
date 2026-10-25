@@ -97,7 +97,7 @@
           row-key="cod_boleta"
           :rows-per-page-options="['7']"
           :visible-columns="
-            optBoleta == 'Pendientes'
+            optBoleta === 'Pending'
               ? [
                   'cod_boleta',
                   'fecha_emision',
@@ -120,6 +120,8 @@
             <q-select
               v-model="optBoleta"
               :options="options"
+              emit-value
+              map-options
               label="Mostrar"
               :dense="true"
               :borderless="true"

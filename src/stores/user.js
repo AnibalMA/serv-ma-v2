@@ -1,10 +1,11 @@
 import { defineStore } from "pinia";
 import { LocalStorage } from "quasar";
+import { encodeUser, decodeUser } from "src/utils/userStorage";
 
 function parseUser() {
   try {
     const raw = LocalStorage.getItem("-oUI");
-    return raw ? JSON.parse(atob(raw)) : null;
+    return raw ? decodeUser(raw) : null;
   } catch {
     return null;
   }
@@ -23,12 +24,12 @@ export const useUserStore = defineStore("User", {
     setUser(oUser) {
       const parsed = oUser ? oUser : {};
       this.oUser = parsed;
-      LocalStorage.set("-oUI", btoa(JSON.stringify(parsed)));
+      LocalStorage.set("-oUI", encodeUser(parsed));
     },
     setTheme(theme) {
       if (this.oUser) {
         this.oUser.theme = theme;
-        LocalStorage.set("-oUI", btoa(JSON.stringify(this.oUser)));
+        LocalStorage.set("-oUI", encodeUser(this.oUser));
       }
     },
     logout() {

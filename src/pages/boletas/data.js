@@ -1,8 +1,8 @@
-import { date } from "quasar";
+import { formatDate, formatMoney } from "src/utils/format";
 
 export default function () {
   return {
-    optBoleta: "Pendientes",
+    optBoleta: "Pending",
     options: [
       {
         label: "Pendientes",
@@ -18,8 +18,10 @@ export default function () {
     selectedBoleta: null,
     paymentOptions: [],
     selectedPaymentMethod: null,
-    paymentCapture: null,
+    paymentCapture: null, // Captura ya comprimida (data URL), lista para enviar
     captureFile: null,
+    processingCapture: false, // true mientras se achica la captura
+    operationNumber: "", // Número de operación de Yape
     paymentComment: "", // Campo para comentarios del pago
     arr_boletas_col: [
       {
@@ -36,7 +38,7 @@ export default function () {
         headerStyle: "width: 7rem",
         align: "center",
         sortable: true,
-        format: (val) => (val ? date.formatDate(val, "DD/MM/YYYY") : "-"),
+        format: (val) => formatDate(val) || "-",
       },
       // { name: 'fecha_emision', label: 'Fecha Emisión', field: 'fecha_emision', headerStyle: 'width: 7rem', align: 'center', sortable: true, format: val => date.formatDate(val, 'DD/MM/YYYY') },
       {
@@ -46,8 +48,7 @@ export default function () {
         align: "center",
         sortable: true,
         headerStyle: "width: 7rem",
-        format: (val) =>
-          `S/.${(val * 1).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
+        format: (val) => formatMoney(val),
       },
       {
         name: "fecha_cancelado",
@@ -56,7 +57,7 @@ export default function () {
         align: "center",
         headerStyle: "width:7rem",
         sortable: true,
-        format: (val) => (val ? date.formatDate(val, "DD/MM/YYYY") : "-"),
+        format: (val) => formatDate(val) || "-",
       },
       {
         name: "monto_cancelado",
@@ -65,8 +66,7 @@ export default function () {
         align: "center",
         sortable: true,
         headerStyle: "width: 7rem",
-        format: (val) =>
-          `S/.${(val * 1).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
+        format: (val) => formatMoney(val),
       },
       {
         name: "desc_estado",

@@ -1,4 +1,5 @@
 import { useUserStore } from "src/stores/user";
+import { formatDate, formatMoney } from "src/utils/format";
 import { serviceHttp } from "../../utils/serviceHttp";
 
 export default {
@@ -62,19 +63,13 @@ export default {
       const boletas = userInfo.boletas || [];
 
       // Crear nodo de usuario
+      const nombre = userInfo.nombre_usuario || "";
+      const totalPendiente = formatMoney(userInfo.total_pendiente);
+      const vencimientoUsuario =
+        formatDate(userInfo.fecha_vencimiento) || "No determinado";
       const userNode = {
         id: `user-${userInfo.id_usuario}`,
-        label: `${userInfo.nombre_usuario || ""} - S/.${
-          userInfo.total_pendiente
-        } - Vto: ${
-          userInfo.fecha_vencimiento
-            ? new Date(userInfo.fecha_vencimiento).toLocaleDateString("es-ES", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              })
-            : "No determinado"
-        }`,
+        label: `${nombre} - ${totalPendiente} - Vto: ${vencimientoUsuario}`,
         icon: "person",
         iconColor: "primary",
         count: userInfo.cantidad_boletas,
@@ -83,17 +78,11 @@ export default {
 
       // Agregar boletas como hijos
       boletas.forEach((boleta) => {
+        const monto = formatMoney(boleta.monto_facturado);
+        const vencimiento = formatDate(boleta.fecha_vencimiento) || "∞";
         userNode.children.push({
           id: `boleta-${boleta.id}`,
-          label: `${boleta.cod_boleta} - S/.${boleta.monto_facturado} - Vto: ${
-            boleta.fecha_vencimiento
-              ? new Date(boleta.fecha_vencimiento).toLocaleDateString("es-ES", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })
-              : "∞"
-          }`,
+          label: `${boleta.cod_boleta} - ${monto} - Vto: ${vencimiento}`,
           icon: "receipt",
           iconColor: boleta.desc_estado === "Pendiente" ? "orange" : "green",
           boletaData: boleta,

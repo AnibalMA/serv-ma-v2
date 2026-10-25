@@ -1,7 +1,6 @@
 import { serviceHttp } from "../../utils/serviceHttp";
 import { useUserStore } from "stores/user";
-
-const ADMIN_ROLES = ["ROL_ADM", "ROL_ADM_SU"];
+import { isAdmin } from "src/utils/roles";
 
 function parseActiveFlag(value) {
   if (typeof value === "boolean") return value;
@@ -60,8 +59,7 @@ export default {
   },
 
   checkAdminAccess() {
-    const user = useUserStore().user;
-    if (!ADMIN_ROLES.includes(user.rol)) {
+    if (!isAdmin(useUserStore().user)) {
       this.$q.notify({
         color: "red-8",
         textColor: "white",
@@ -151,22 +149,11 @@ export default {
 
   onOpenCreateUser() {
     if (!this.checkAdminAccess()) return;
-    this.createUserForm = {
-      nom_usuario: "",
-      ape_usuario: "",
-      email_principal_usuario: "",
-      celular_principal_usuario: "",
-      usernameL: "",
-      passL: "",
-      num_contacto_prov: "",
-      num_opc: "1",
-    };
     this.showCreateUserDialog = true;
   },
 
   saveNewUser(form) {
     if (!this.checkAdminAccess()) return;
-    if (!form) form = this.createUserForm;
 
     const payload = {
       ...form,
@@ -214,16 +201,6 @@ export default {
     if (!this.checkAdminAccess()) return;
 
     this.selectedUser = user ? { ...user } : null;
-    this.platformServiceForm = {
-      id_usuario: user?.id || null,
-      id_grupo: null,
-      id_plataforma: null,
-      dia_pago: null,
-      monto: null,
-      desc_perfil: "",
-      pin_perfil: "",
-    };
-
     this.showAssignPlatformServiceDialog = true;
   },
 
@@ -352,17 +329,11 @@ export default {
 
   onOpenEditService(service) {
     this.editingService = service;
-    this.editServiceForm = {
-      id_usuario_servicio: service?._serviceId,
-      desc_perfil: service?.desc_perfil || "",
-      pin: service?.pin || service?.pin_perfil || "",
-    };
     this.showEditServiceDialog = true;
   },
 
   async saveUserServiceEdit(form) {
     if (!this.checkAdminAccess()) return;
-    if (!form) form = this.editServiceForm;
 
     if (!form.id_usuario_servicio) {
       this.$q.notify({
@@ -377,10 +348,11 @@ export default {
     this.$q.loading.show({ message: "Actualizando servicio..." });
 
     try {
+      // The backend reads "PIN" in uppercase; "pin" is ignored
       const payload = {
         id_usuario_servicio: Number(form.id_usuario_servicio),
         desc_perfil: (form.desc_perfil || "").trim(),
-        pin: (form.pin || "").trim(),
+        PIN: String(form.pin ?? "").trim(),
       };
 
       const { data } = await serviceHttp.post("/change-service", payload);
@@ -480,40 +452,8 @@ export default {
     }
   },
 
-  onPlatformChange(selectedPlatformId) {
-    this.platformServiceForm.id_grupo = null;
-    if (!selectedPlatformId) {
-      this.filteredGroupOptions = [];
-      return;
-    }
-    const platform = this.platformOptions.find(
-      (p) => String(p.value) === String(selectedPlatformId)
-    );
-    if (platform?.monto !== null && platform?.monto !== undefined) {
-      this.platformServiceForm.monto = Number(platform.monto);
-    }
-    const idsGrupos = this.plataformaGrupos
-      .filter((pg) => String(pg.id_plataforma) === String(selectedPlatformId))
-      .map((pg) => pg.id_grupo);
-    this.filteredGroupOptions = this.groupOptions.filter((g) =>
-      idsGrupos.includes(g.value)
-    );
-  },
-
-  getSelectedGrupoEmail() {
-    const { id_plataforma, id_grupo } = this.platformServiceForm;
-    if (!id_plataforma || !id_grupo) return null;
-    const pg = this.plataformaGrupos.find(
-      (p) =>
-        String(p.id_plataforma) === String(id_plataforma) &&
-        String(p.id_grupo) === String(id_grupo)
-    );
-    return pg?.correo_acc || null;
-  },
-
   savePlatformService(form) {
     if (!this.checkAdminAccess()) return;
-    if (!form) form = this.platformServiceForm;
 
     if (!form.id_usuario) {
       this.$q.notify({
@@ -581,19 +521,13 @@ export default {
 
   onEditUser(user) {
     if (!this.checkAdminAccess()) return;
-    this.editForm = {
-      id_usuario: user.id,
-      nom_usuario: user.nom_usuario,
-      ape_usuario: user.ape_usuario,
-      email_principal_usuario: user.email_principal_usuario || "",
-      celular_principal_usuario: user.celular_principal_usuario || "",
-    };
+    // UserEditDialog builds its form from selectedUser
+    this.selectedUser = { ...user };
     this.showEditDialog = true;
   },
 
   saveUserEdit(form) {
     if (!this.checkAdminAccess()) return;
-    if (!form) form = this.editForm;
     this.$q.loading.show({ message: "Guardando cambios..." });
 
     serviceHttp
@@ -621,6 +555,12 @@ export default {
       .catch((error) => {
         this.$q.loading.hide();
         console.error(error);
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message: "Error de conexión al actualizar el usuario",
+        });
       });
   },
 
@@ -690,20 +630,12 @@ export default {
 
   onAddDiscount(user) {
     if (!this.checkAdminAccess()) return;
-    this.discountForm = {
-      id_usuario: user.id,
-      monto: 0,
-      factor: 0,
-      tipo_desc: "NORMAL",
-      descripcion: "",
-    };
     this.selectedUser = { ...user };
     this.showServiceDialog = true;
   },
 
   saveDiscount(form) {
     if (!this.checkAdminAccess()) return;
-    if (!form) form = this.discountForm;
 
     if (form.monto <= 0) {
       this.$q.notify({
@@ -726,6 +658,17 @@ export default {
       });
       return;
     }
+    // The backend requires a note for every discount
+    const descripcion = String(form.descripcion || "").trim();
+    if (!descripcion) {
+      this.$q.notify({
+        color: "orange-8",
+        textColor: "white",
+        icon: "warning",
+        message: "Ingrese una descripción para el descuento",
+      });
+      return;
+    }
 
     this.$q.loading.show({ message: "Registrando descuento..." });
 
@@ -734,8 +677,8 @@ export default {
       id_usuario: form.id_usuario,
       monto_descuento: form.monto,
       factor_desc: esCombo ? form.factor : form.monto,
-      desc_nota: form.descripcion,
-      desc_nota_short: String(form.descripcion).substring(0, 50),
+      desc_nota: descripcion,
+      desc_nota_short: descripcion.substring(0, 50),
       tipo_desc: form.tipo_desc,
     };
 
@@ -763,6 +706,12 @@ export default {
       .catch((error) => {
         this.$q.loading.hide();
         console.error(error);
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message: "Error de conexión al registrar el descuento",
+        });
       });
   },
 
@@ -779,14 +728,6 @@ export default {
   async onPayBoleta(user) {
     if (!this.checkAdminAccess()) return;
     this.selectedUser = { ...user };
-    this.payBoletaForm = {
-      id_usuario: user.id,
-      montoCancelado: 0,
-      bAll: false,
-      idBoleta: [],
-      idDetalle: [],
-    };
-    this.modoPayBoleta = "boletas";
     this.userPayBoletas = [];
     this.showPayBoletaDialog = true;
     await this.loadUserPendingBoletas(user.id);
@@ -814,8 +755,6 @@ export default {
 
   async savePayBoleta(form, modo) {
     if (!this.checkAdminAccess()) return;
-    if (!form) form = this.payBoletaForm;
-    if (!modo) modo = this.modoPayBoleta;
 
     if (modo === "boletas") {
       if (!form.bAll && !form.idBoleta.length) {
@@ -897,35 +836,6 @@ export default {
         icon: "error",
         message: "Error de conexión",
       });
-    }
-  },
-
-  areAllDetallesSelected(boleta) {
-    const ids = (boleta.detalles || []).map((d) => d.id);
-    return (
-      ids.length > 0 &&
-      ids.every((id) => this.payBoletaForm.idDetalle.includes(id))
-    );
-  },
-
-  areSomeDetallesSelected(boleta) {
-    const ids = (boleta.detalles || []).map((d) => d.id);
-    return (
-      ids.some((id) => this.payBoletaForm.idDetalle.includes(id)) &&
-      !this.areAllDetallesSelected(boleta)
-    );
-  },
-
-  toggleBoletaDetalles(boleta, selected) {
-    const ids = (boleta.detalles || []).map((d) => d.id);
-    if (selected) {
-      const current = new Set(this.payBoletaForm.idDetalle);
-      ids.forEach((id) => current.add(id));
-      this.payBoletaForm.idDetalle = [...current];
-    } else {
-      this.payBoletaForm.idDetalle = this.payBoletaForm.idDetalle.filter(
-        (id) => !ids.includes(id)
-      );
     }
   },
 

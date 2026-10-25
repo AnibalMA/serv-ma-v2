@@ -1,7 +1,16 @@
 import { useUserStore } from "src/stores/user";
 import { serviceHttp } from "../../utils/serviceHttp";
+import { formatMoney } from "src/utils/format";
+import { copyAndNotify } from "src/utils/clipboard";
+import { compressImage } from "src/utils/compressImage";
+import {
+  MAX_CAPTURE_SIZE,
+  cleanOperationNumber,
+  isValidOperationNumber,
+} from "./helpers";
 // import { date } from "quasar";
 export default {
+  formatMoney,
   getList(sState, iUId) {
     this.$q.loading.show();
 
@@ -33,7 +42,14 @@ export default {
         }
       })
       .catch((error) => {
-        console.log(error);
+        this.$q.loading.hide();
+        console.error(error);
+        this.$q.notify({
+          color: "red-8",
+          textColor: "white",
+          icon: "error",
+          message: "Error al cargar las boletas",
+        });
       });
 
     // console.log("Iniciando sesión...");
@@ -49,8 +65,8 @@ export default {
   //     let val = (value / 1).toFixed(2)
   //     return `S/.${val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
   // },
-  onSelectOpt: function (opt) {
-    this.getList(opt.value);
+  onSelectOpt: function (sState) {
+    this.getList(sState);
   },
   onViewBoleta: function (oBoleta) {
     this.$q.loading.show({ message: "Obteniendo la boleta..." });
@@ -183,7 +199,8 @@ export default {
         color: "red-8",
         textColor: "white",
         icon: "error",
-        message: "Error al obtener opciones de pago",
+        message:
+          error.response?.data?.sMessage || "Error al obtener opciones de pago",
       });
     }
   },
@@ -194,6 +211,8 @@ export default {
     this.selectedPaymentMethod = null;
     this.paymentCapture = null;
     this.captureFile = null;
+    this.processingCapture = false;
+    this.operationNumber = "";
     this.paymentComment = "";
 
     // Obtener opciones de pago
@@ -202,19 +221,47 @@ export default {
     this.showPaymentModal = true;
   },
 
-  // Método para manejar la selección de archivo
-  onFileSelected(file) {
+  // Achica la captura antes de enviarla. paymentCapture solo tiene valor
+  // cuando la imagen ya está lista (se usa para la vista previa y para enviar).
+  async onFileSelected(file) {
     this.captureFile = file;
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.paymentCapture = e.target.result;
-      };
-      reader.readAsDataURL(file);
+    this.paymentCapture = null;
+    this.processingCapture = false;
+    if (!file) return;
+
+    if (file.size > MAX_CAPTURE_SIZE) {
+      this.captureFile = null;
+      this.$q.notify({
+        color: "orange-8",
+        textColor: "white",
+        icon: "warning",
+        message: "La imagen pesa más de 15 MB. Elige una captura más liviana.",
+      });
+      return;
     }
+
+    this.processingCapture = true;
+    try {
+      const dataUrl = await compressImage(file);
+      // The user may have picked another image while this one was loading
+      if (this.captureFile !== file) return;
+      this.paymentCapture = dataUrl;
+    } catch (error) {
+      if (this.captureFile !== file) return;
+      console.error("Error al leer la captura:", error);
+      this.captureFile = null;
+      this.$q.notify({
+        color: "red-8",
+        textColor: "white",
+        icon: "error",
+        message: "No se pudo leer la imagen. Sube una captura en JPG o PNG.",
+      });
+    }
+    this.processingCapture = false;
   },
 
   // Método para enviar verificación de pago
+  // (aquí se revisa todo lo que falta; el botón solo se bloquea mientras carga la captura)
   async submitPaymentVerification() {
     if (!this.selectedPaymentMethod) {
       this.$q.notify({
@@ -226,7 +273,7 @@ export default {
       return;
     }
 
-    if (!this.captureFile) {
+    if (!this.captureFile || !this.paymentCapture) {
       this.$q.notify({
         color: "orange-8",
         textColor: "white",
@@ -236,15 +283,26 @@ export default {
       return;
     }
 
-    this.$q.loading.show({ message: "Enviando verificación de pago..." });
+    if (!isValidOperationNumber(this.operationNumber)) {
+      this.$q.notify({
+        color: "orange-8",
+        textColor: "white",
+        icon: "warning",
+        message: "Escribe el número de operación (de 4 a 20 dígitos)",
+      });
+      return;
+    }
+
+    this.$q.loading.show({ message: "Enviando verificación de pago…" });
 
     try {
       // Preparar datos en el formato que espera el backend
       const requestData = {
         id_boleta: this.selectedBoleta.id,
         id_payment_opc: this.selectedPaymentMethod.id,
-        screenshot_data: this.paymentCapture, // Base64 string
+        screenshot_data: this.paymentCapture, // Base64 string (ya comprimida)
         comments: this.paymentComment.trim() || null,
+        nro_operacion: cleanOperationNumber(this.operationNumber),
       };
 
       const { data } = await serviceHttp.post(
@@ -269,7 +327,7 @@ export default {
         });
 
         // Actualizar la lista de boletas para reflejar los cambios del backend
-        this.getList(this.optBoleta.value || "Pending");
+        this.getList(this.optBoleta);
 
         this.showPaymentModal = false;
       } else {
@@ -287,7 +345,9 @@ export default {
         color: "red-8",
         textColor: "white",
         icon: "error",
-        message: "Error al enviar la verificación de pago",
+        message:
+          error.response?.data?.sMessage ||
+          "Error al enviar la verificación de pago",
       });
     }
   },
@@ -299,6 +359,8 @@ export default {
     this.selectedPaymentMethod = null;
     this.paymentCapture = null;
     this.captureFile = null;
+    this.processingCapture = false;
+    this.operationNumber = "";
     this.paymentComment = "";
   },
 
@@ -319,45 +381,7 @@ export default {
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(numericData);
-      this.$q.notify({
-        color: "green-8",
-        textColor: "white",
-        icon: "check_circle",
-        message: `Copiado: ${numericData}`,
-        position: "top",
-        timeout: 1500,
-      });
-    } catch (error) {
-      // Fallback para navegadores que no soportan la API del portapapeles
-      try {
-        const textArea = document.createElement("textarea");
-        textArea.value = numericData;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textArea);
-
-        this.$q.notify({
-          color: "green-8",
-          textColor: "white",
-          icon: "check_circle",
-          message: `Copiado: ${numericData}`,
-          position: "top",
-          timeout: 1500,
-        });
-      } catch (fallbackError) {
-        this.$q.notify({
-          color: "red-8",
-          textColor: "white",
-          icon: "error",
-          message: "Error al copiar al portapapeles",
-          position: "top",
-          timeout: 2000,
-        });
-      }
-    }
+    await copyAndNotify(numericData, `Copiado: ${numericData}`);
   },
 
   // Método para extraer datos numéricos del texto
@@ -372,8 +396,10 @@ export default {
       /(?:cel\.?|celular|teléfono|phone|móvil)[\s:]*([0-9\s\-]{9,})/i,
       // CCI (20 dígitos)
       /(?:cci)[\s:]*([0-9\s\-]{20})/i,
-      // Cualquier secuencia de números larga (8+ dígitos)
-      /([0-9\s\-]{8,})/g,
+      // Cualquier secuencia de números larga (8+ caracteres) que empieza y
+      // termina en dígito, para no copiar solo espacios o guiones.
+      // Sin el flag "g": con "g", match() no devuelve el grupo en match[1]
+      /(\d[\d\s-]{6,}\d)/,
     ];
 
     for (const pattern of patterns) {

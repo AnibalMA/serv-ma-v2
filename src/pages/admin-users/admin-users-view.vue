@@ -315,12 +315,11 @@
       :selected-user="selectedUser"
       :user-options="userOptions"
       :platform-options="platformOptions"
-      :filtered-group-options="filteredGroupOptions"
+      :group-options="groupOptions"
+      :plataforma-grupos="plataformaGrupos"
       :loading-master-data="loadingMasterData"
-      :grupo-email="getSelectedGrupoEmail()"
       @save="savePlatformService"
       @cancel="showAssignPlatformServiceDialog = false"
-      @platform-change="onPlatformChange"
     />
 
     <UserEditDialog

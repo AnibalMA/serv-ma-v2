@@ -983,7 +983,8 @@ export default {
   },
   computed: {
     loggedInUser() {
-      return this.user;
+      // Read the store, so the name updates after editing "Mi perfil"
+      return useUserStore().user || {};
     },
     /* currentSong() {
       return this.playlist[this.currentSongIndex] || this.playlist[0];

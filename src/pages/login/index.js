@@ -4,6 +4,8 @@ import { useUserStore } from "stores/user";
 import { useServerStatus } from "../servicios/composables/useServerStatus";
 import { serviceHttp } from "../../utils/serviceHttp";
 import { computed } from "vue";
+import { GOOGLE_CLIENT_ID } from "src/utils/googleSignIn";
+import { TURNSTILE_SITE_KEY, removeTurnstile } from "src/utils/turnstile";
 export default {
   data() {
     return {
@@ -25,6 +27,9 @@ export default {
       isCheckingStatus,
       statusError,
       checkServerStatus,
+      // Fijos al compilar: sin clave en el .env, la función queda apagada
+      isTurnstileEnabled: Boolean(TURNSTILE_SITE_KEY),
+      isGoogleEnabled: Boolean(GOOGLE_CLIENT_ID),
     };
   },
   computed: {
@@ -42,11 +47,22 @@ export default {
       return (
         !this.isFormValid ||
         !this.serverStatus.isOnline ||
-        this.serverStatus.isInMaintenance
+        this.serverStatus.isInMaintenance ||
+        this.isLoggingIn ||
+        (this.isTurnstileEnabled && !this.turnstileToken)
+      );
+    },
+    isWaitingForTurnstile() {
+      return (
+        this.isTurnstileEnabled && !this.turnstileToken && !this.turnstileError
       );
     },
   },
   async mounted() {
+    // Cargar Turnstile y Google sin esperar el estado del servidor
+    this.setupTurnstile();
+    this.setupGoogleButton();
+
     // Verificar el estado del servidor al cargar la página
     await this.checkServerStatus();
 
@@ -58,6 +74,9 @@ export default {
 
     // Hacer ping al backend para "despertarlo" (cold start)
     this.wakeUpBackend();
+  },
+  beforeUnmount() {
+    removeTurnstile(this.turnstileWidgetId);
   },
   methods: {
     ...methods,

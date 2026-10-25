@@ -63,20 +63,18 @@
                       b.cod_boleta || `#${b.id}`
                     }}</q-item-label>
                     <q-item-label caption>
-                      Saldo: S/.
+                      Saldo:
                       {{
-                        Number(
+                        formatMoney(
                           (b.monto_facturado || 0) - (b.monto_cancelado || 0)
-                        ).toFixed(2)
+                        )
                       }}
                     </q-item-label>
                   </q-item-section>
                   <q-item-section side>
                     <q-badge
                       color="orange"
-                      :label="`S/. ${Number(b.monto_facturado || 0).toFixed(
-                        2
-                      )}`"
+                      :label="formatMoney(b.monto_facturado)"
                     />
                   </q-item-section>
                 </q-item>
@@ -102,7 +100,7 @@
 
             <q-input
               v-model.number="payBoletaForm.montoCancelado"
-              label="Monto a cancelar (S/.)"
+              label="Monto a cancelar (S/)"
               outlined
               dense
               type="number"
@@ -135,9 +133,9 @@
                   <q-space />
                   <q-badge
                     color="orange"
-                    :label="`Saldo: S/. ${Number(
+                    :label="`Saldo: ${formatMoney(
                       (b.monto_facturado || 0) - (b.monto_cancelado || 0)
-                    ).toFixed(2)}`"
+                    )}`"
                   />
                 </div>
 
@@ -181,14 +179,16 @@
                             class="text-caption text-grey-5"
                             style="text-decoration: line-through"
                           >
-                            S/. {{ Number(d.monto_servicio || 0).toFixed(2) }}
+                            {{ formatMoney(d.monto_servicio) }}
                           </span>
                           <q-badge
                             color="green-8"
-                            :label="`S/. ${(
-                              Number(b.monto_facturado || 0) -
-                              Number(b.monto_cancelado || 0)
-                            ).toFixed(2)}`"
+                            :label="
+                              formatMoney(
+                                Number(b.monto_facturado || 0) -
+                                  Number(b.monto_cancelado || 0)
+                              )
+                            "
                           />
                           <span class="text-caption text-blue-grey-5"
                             >desc. incluido</span
@@ -198,9 +198,7 @@
                       <template v-else>
                         <q-badge
                           color="green-8"
-                          :label="`S/. ${Number(
-                            d.monto_servicio || 0
-                          ).toFixed(2)}`"
+                          :label="formatMoney(d.monto_servicio)"
                         />
                       </template>
                     </q-item-section>
@@ -221,7 +219,7 @@
                     </q-item-section>
                     <q-item-section side>
                       <span class="text-caption text-blue-grey-6">
-                        S/. {{ Number(d.monto_servicio || 0).toFixed(2) }}
+                        {{ formatMoney(d.monto_servicio) }}
                       </span>
                     </q-item-section>
                   </q-item>
@@ -236,10 +234,10 @@
                   v-if="montoDescuentoAplicado !== '0.00'"
                   class="text-caption text-blue-grey-6"
                 >
-                  (incl. descuento S/. {{ montoDescuentoAplicado }})
+                  (incl. descuento {{ formatMoney(montoDescuentoAplicado) }})
                 </span>
                 <span class="text-subtitle2 text-weight-bold text-green-8">
-                  Total a pagar: S/. {{ montoSeleccionado }}
+                  Total a pagar: {{ formatMoney(montoSeleccionado) }}
                 </span>
               </div>
             </div>
@@ -275,6 +273,8 @@
 </template>
 
 <script>
+import { formatMoney } from "src/utils/format";
+
 export default {
   props: {
     modelValue: Boolean,
@@ -296,13 +296,10 @@ export default {
     };
   },
   watch: {
-    selectedUser: {
-      immediate: true,
-      handler(user) {
-        if (user?.id) {
-          this.payBoletaForm.id_usuario = user.id;
-        }
-      },
+    // Start with a clean form every time the dialog opens, so nothing
+    // selected for the previous user is sent for this one
+    modelValue(isOpen) {
+      if (isOpen) this.resetForm();
     },
   },
   computed: {
@@ -348,6 +345,17 @@ export default {
     },
   },
   methods: {
+    formatMoney,
+    resetForm() {
+      this.modoPayBoleta = "boletas";
+      this.payBoletaForm = {
+        id_usuario: this.selectedUser?.id || null,
+        montoCancelado: 0,
+        bAll: false,
+        idBoleta: [],
+        idDetalle: [],
+      };
+    },
     areAllDetallesSelected(boleta) {
       const ids = (boleta.detalles || []).map((d) => d.id);
       return (
