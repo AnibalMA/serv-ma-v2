@@ -19,9 +19,14 @@ describe("public/privacidad.html", () => {
     expect(html).toContain("Última actualización: 25 de octubre de 2026");
   });
 
-  it("mentions the third-party providers", () => {
+  it("explains the data from Google sign-in", () => {
     expect(html).toContain("Google");
-    expect(html).toContain("Cloudinary");
+  });
+
+  it("does not list the service providers", () => {
+    expect(html).not.toContain("Con quién los compartimos");
+    expect(html).not.toContain("Cloudinary");
+    expect(html).not.toContain("Oracle");
   });
 
   it("has no scripts, insecure links or email addresses", () => {
