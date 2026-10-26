@@ -243,6 +243,20 @@
               {{ googleError }}
             </div>
           </q-card-section>
+
+          <q-card-section class="text-center q-pb-none">
+            <a
+              href="/privacidad.html"
+              target="_blank"
+              rel="noopener"
+              class="text-caption"
+              style="
+                color: rgba(255, 255, 255, 0.75);
+                text-decoration: underline;
+              "
+              >Política de privacidad</a
+            >
+          </q-card-section>
         </q-card>
       </q-page>
     </q-page-container>

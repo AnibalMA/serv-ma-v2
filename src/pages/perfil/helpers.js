@@ -5,6 +5,12 @@ const PROFILE_FIELDS = [
   "ape_usuario",
   "email_principal_usuario",
   "celular_principal_usuario",
+  "genero",
+];
+
+export const GENDER_OPTIONS = [
+  { label: "Masculino", value: "M" },
+  { label: "Femenino", value: "F" },
 ];
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
@@ -15,7 +21,12 @@ const FIELD_LABELS = {
   ape_usuario: "Apellido",
   email_principal_usuario: "Correo electrónico",
   celular_principal_usuario: "Celular",
+  genero: "Género",
 };
+
+function isGender(value) {
+  return GENDER_OPTIONS.some((option) => option.value === value);
+}
 
 // Form values taken from the logged-in user
 export function profileFormFromUser(user) {
@@ -23,6 +34,8 @@ export function profileFormFromUser(user) {
   PROFILE_FIELDS.forEach((field) => {
     form[field] = user?.[field] || "";
   });
+  // Old values (e.g. "Otro") are not in the list: the field starts empty
+  if (!isGender(form.genero)) form.genero = "";
   return form;
 }
 
@@ -32,6 +45,8 @@ export function cleanProfileForm(form) {
   PROFILE_FIELDS.forEach((field) => {
     clean[field] = String(form[field] || "").trim();
   });
+  // Género is optional: it is only sent when the user chose one
+  if (!clean.genero) delete clean.genero;
   return clean;
 }
 
@@ -88,6 +103,24 @@ export function getPasswordChangeError({
   }
   if (newPassword === currentPassword) {
     return "La nueva contraseña debe ser diferente a la actual";
+  }
+  return "";
+}
+
+// Photos bigger than this are probably not a profile photo (phones take ~5 MB).
+// The photo is made smaller before uploading anyway (see squareImageBlob).
+const AVATAR_PHOTO_MAX_ORIGINAL = 15 * 1024 * 1024;
+// What the backend accepts
+export const AVATAR_PHOTO_MAX_UPLOAD = 2 * 1024 * 1024;
+
+// Returns the error message for the picked photo, or "" when it is fine
+export function getAvatarPhotoError(file) {
+  if (!file) return "Elige una foto";
+  if (!String(file.type || "").startsWith("image/")) {
+    return "Elige una imagen (JPG, PNG o WEBP)";
+  }
+  if (file.size > AVATAR_PHOTO_MAX_ORIGINAL) {
+    return "La foto pesa demasiado. Elige una de hasta 15 MB";
   }
   return "";
 }

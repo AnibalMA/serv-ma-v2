@@ -12,6 +12,105 @@
         </div>
       </div>
 
+      <!-- Mi avatar -->
+      <q-card flat bordered class="q-mb-md">
+        <q-card-section>
+          <h2 class="text-h6 q-my-none">Mi avatar</h2>
+          <div class="text-caption text-grey-6">
+            Elige un avatar o sube una foto tuya
+          </div>
+        </q-card-section>
+        <q-card-section class="q-pt-none row items-center q-col-gutter-md">
+          <div class="col-12 col-sm-auto text-center">
+            <user-avatar :user="user" size="96px" />
+          </div>
+          <div class="col-12 col-sm">
+            <div
+              class="row q-gutter-sm"
+              :class="{ 'justify-center': $q.screen.xs }"
+            >
+              <q-btn
+                color="primary"
+                icon="face"
+                label="Elegir avatar"
+                no-caps
+                :loading="avatarAction === 'preset'"
+                :disable="isSavingAvatar"
+                @click="showAvatarPicker = true"
+              />
+              <q-btn
+                outline
+                color="primary"
+                icon="photo_camera"
+                label="Subir foto"
+                no-caps
+                :loading="avatarAction === 'photo'"
+                :disable="isSavingAvatar"
+                @click="$refs.avatarFileInput.click()"
+              />
+              <q-btn
+                v-if="hasCustomAvatar"
+                flat
+                color="primary"
+                icon="restart_alt"
+                label="Usar avatar por defecto"
+                no-caps
+                :loading="avatarAction === 'reset'"
+                :disable="isSavingAvatar"
+                @click="resetAvatar"
+              />
+            </div>
+            <input
+              ref="avatarFileInput"
+              type="file"
+              accept="image/*"
+              hidden
+              @change="onAvatarFilePicked"
+            />
+          </div>
+        </q-card-section>
+      </q-card>
+
+      <!-- Elegir avatar -->
+      <q-dialog v-model="showAvatarPicker" aria-labelledby="avatar-picker-title">
+        <q-card style="width: 480px; max-width: 92vw">
+          <q-card-section class="row items-center no-wrap">
+            <h2 id="avatar-picker-title" class="text-h6 q-my-none">
+              Elige tu avatar
+            </h2>
+            <q-space />
+            <q-btn v-close-popup flat round dense icon="close" aria-label="Cerrar" />
+          </q-card-section>
+          <q-card-section class="q-pt-none">
+            <div class="row q-col-gutter-sm">
+              <div
+                v-for="option in avatarOptions"
+                :key="option.key"
+                class="col-4 col-sm-3 text-center"
+              >
+                <!-- The chosen avatar (or the first one) gets the focus on open -->
+                <q-btn
+                  round
+                  flat
+                  padding="4px"
+                  :class="{ 'bg-primary': option.key === currentPresetKey }"
+                  :aria-label="'Elegir ' + option.label"
+                  :aria-pressed="option.key === currentPresetKey"
+                  :data-autofocus="option.key === focusedPresetKey || null"
+                  :disable="isSavingAvatar"
+                  @click="chooseAvatar(option.key)"
+                >
+                  <q-avatar size="64px">
+                    <img :src="option.src" :alt="option.label" />
+                  </q-avatar>
+                </q-btn>
+              </div>
+            </div>
+          </q-card-section>
+          <q-inner-loading :showing="avatarAction === 'preset'" />
+        </q-card>
+      </q-dialog>
+
       <!-- Mis datos -->
       <q-card flat bordered class="q-mb-md">
         <q-card-section>
@@ -71,6 +170,17 @@
                   autocomplete="tel"
                   lazy-rules
                   :rules="profileRules.phone"
+                />
+              </div>
+              <div class="col-12 col-sm-6">
+                <q-select
+                  v-model="profileForm.genero"
+                  :options="genderOptions"
+                  label="Género"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
                 />
               </div>
             </div>

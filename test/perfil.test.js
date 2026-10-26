@@ -5,6 +5,8 @@ import {
   profileRules,
   getPasswordChangeError,
   getProfileErrorMessage,
+  getAvatarPhotoError,
+  GENDER_OPTIONS,
 } from "src/pages/perfil/helpers";
 
 // Runs Quasar-style rules: returns the first error message, or true
@@ -25,6 +27,7 @@ describe("profileFormFromUser", () => {
       ape_usuario: "Pérez",
       email_principal_usuario: "ana@mail.com",
       celular_principal_usuario: "987654321",
+      genero: "F",
     };
 
     expect(profileFormFromUser(user)).toEqual({
@@ -32,6 +35,7 @@ describe("profileFormFromUser", () => {
       ape_usuario: "Pérez",
       email_principal_usuario: "ana@mail.com",
       celular_principal_usuario: "987654321",
+      genero: "F",
     });
   });
 
@@ -41,8 +45,23 @@ describe("profileFormFromUser", () => {
       ape_usuario: "",
       email_principal_usuario: "",
       celular_principal_usuario: "",
+      genero: "",
     });
     expect(profileFormFromUser(null).nom_usuario).toBe("");
+  });
+
+  it("only keeps the género values of the form (M or F)", () => {
+    expect(profileFormFromUser({ genero: "M" }).genero).toBe("M");
+    expect(profileFormFromUser({ genero: "Otro" }).genero).toBe("");
+  });
+});
+
+describe("GENDER_OPTIONS", () => {
+  it("has Masculino (M) and Femenino (F)", () => {
+    expect(GENDER_OPTIONS).toEqual([
+      { label: "Masculino", value: "M" },
+      { label: "Femenino", value: "F" },
+    ]);
   });
 });
 
@@ -54,13 +73,27 @@ describe("cleanProfileForm", () => {
         ape_usuario: "Pérez  ",
         email_principal_usuario: " ana@mail.com",
         celular_principal_usuario: " 987654321 ",
+        genero: "F",
       })
     ).toEqual({
       nom_usuario: "Ana",
       ape_usuario: "Pérez",
       email_principal_usuario: "ana@mail.com",
       celular_principal_usuario: "987654321",
+      genero: "F",
     });
+  });
+
+  it("does not send género when it was not chosen", () => {
+    const clean = cleanProfileForm({
+      nom_usuario: "Ana",
+      ape_usuario: "Pérez",
+      email_principal_usuario: "ana@mail.com",
+      celular_principal_usuario: "987654321",
+      genero: "",
+    });
+
+    expect(clean).not.toHaveProperty("genero");
   });
 });
 
@@ -170,6 +203,37 @@ describe("getProfileErrorMessage", () => {
   it("has a friendly message when there is no answer at all", () => {
     expect(getProfileErrorMessage(undefined)).toBe(
       "No se pudieron guardar tus datos. Intenta nuevamente."
+    );
+  });
+
+  it("names the Género field", () => {
+    expect(
+      getProfileErrorMessage({ data: [{ attribute: "genero", error: "no es válido" }] })
+    ).toBe("Género: no es válido");
+  });
+});
+
+describe("getAvatarPhotoError", () => {
+  const MB = 1024 * 1024;
+  const photo = (type, size = 1000) => ({ type, size });
+
+  it("accepts photos up to 15 MB", () => {
+    expect(getAvatarPhotoError(photo("image/jpeg"))).toBe("");
+    expect(getAvatarPhotoError(photo("image/png", 15 * MB))).toBe("");
+    expect(getAvatarPhotoError(photo("image/webp"))).toBe("");
+  });
+
+  it("asks for an image", () => {
+    expect(getAvatarPhotoError(null)).toBe("Elige una foto");
+    expect(getAvatarPhotoError(photo("application/pdf"))).toBe(
+      "Elige una imagen (JPG, PNG o WEBP)"
+    );
+    expect(getAvatarPhotoError(photo(""))).toBe("Elige una imagen (JPG, PNG o WEBP)");
+  });
+
+  it("rejects photos that are too heavy", () => {
+    expect(getAvatarPhotoError(photo("image/jpeg", 15 * MB + 1))).toBe(
+      "La foto pesa demasiado. Elige una de hasta 15 MB"
     );
   });
 });

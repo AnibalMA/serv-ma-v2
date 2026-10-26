@@ -58,3 +58,46 @@ export async function compressImage(file, { maxSide = 1280, quality = 0.8 } = {}
     URL.revokeObjectURL(objectUrl);
   }
 }
+
+// Biggest square in the middle of the image: the part kept for a profile photo
+export function squareCrop(width, height) {
+  const side = Math.min(width, height);
+  return {
+    x: Math.round((width - side) / 2),
+    y: Math.round((height - side) / 2),
+    side,
+  };
+}
+
+// Profile photo: the center square of the image, at most size x size,
+// as a JPEG Blob ready to send in a FormData. Small photos are not enlarged.
+export async function squareImageBlob(file, { size = 512, quality = 0.85 } = {}) {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await loadImage(objectUrl);
+    const crop = squareCrop(image.naturalWidth, image.naturalHeight);
+    const side = Math.min(size, crop.side);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = side;
+    canvas.height = side;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("El navegador no permite dibujar la imagen");
+
+    // JPEG has no transparency: paint white first so transparent parts don't turn black
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, side, side);
+    context.drawImage(image, crop.x, crop.y, crop.side, crop.side, 0, 0, side, side);
+
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", quality)
+    );
+    if (!blob || blob.type !== "image/jpeg") {
+      throw new Error("El navegador no pudo crear el JPEG");
+    }
+    return blob;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
